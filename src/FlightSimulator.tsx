@@ -1,8 +1,8 @@
 import React, {Suspense, useRef} from "react"
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
 import {Color3} from "@babylonjs/core/Maths/math.color"
-import {Scene, Task, TaskType, useAssetManager, useBeforeRender, useScene} from "react-babylonjs"
-import {TextureAssetTask, Texture} from "@babylonjs/core"
+import {Scene, Skybox, Task, TaskType, useAssetManager, useBeforeRender, useScene} from "react-babylonjs"
+import {TextureAssetTask} from "@babylonjs/core"
 import {Nullable} from "@babylonjs/core/types"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import "@babylonjs/inspector"
@@ -83,31 +83,9 @@ function FlightSimulator(): JSX.Element {
                 </standardMaterial>
             </groundFromHeightMap>
 
-
-            {/*<Skybox rootUrl="assets/textures/TropicalSunnyDay" />*/}
-
-            <box
-                name="sky-box"
-                size={800}
-            >
-                <standardMaterial
-                    name="sky-box-material"
-                    backFaceCulling={false}
-                    diffuseColor={new Color3(0, 0, 0)}
-                    specularColor={new Color3(0, 0, 0)}
-                    disableLighting={true}
-                >
-                    <cubeTexture
-                        rootUrl="assets/textures/skybox"
-                        coordinatesMode={Texture.SKYBOX_MODE}
-                        assignTo="reflectionTexture"
-                    />
-                </standardMaterial>
-            </box>
+            <Skybox rootUrl="assets/textures/skybox" size={800} />
         </>
     )
-
-
 }
 
 export function TerrainScene(): JSX.Element {
