@@ -1,44 +1,18 @@
 import "./App.css"
 import { RecoilRoot } from "recoil"
-import {CharacterCounter} from "./CharacterCounter"
 
 import React from "react"
 
-import "@babylonjs/core/Physics/physicsEngineComponent"  // side-effect adds scene.enablePhysics function
-
-import { Vector3 } from "@babylonjs/core/Maths/math.vector"
-import { CannonJSPlugin } from "@babylonjs/core/Physics/Plugins"
-
-import { Scene, Engine } from "react-babylonjs"
+import { Engine } from "react-babylonjs"
 import "./App.css"
-
-import * as CANNON from "cannon"
-import {SceneWithSpinningBoxes} from "./Boxen"
-window.CANNON = CANNON
-
-const gravityVector = new Vector3(0, -9.81, 0)
+import {TerrainScene} from "./FlightSimulator"
 
 export const App: React.FC = () => {
-
     return (
-        <div>
+        <RecoilRoot>
             <Engine antialias={true} adaptToDeviceRatio={true} canvasId="sample-canvas">
-                <Scene enablePhysics={[gravityVector, new CannonJSPlugin()]}>
-                    {/*<BouncyBallScene/>*/}
-                    <SceneWithSpinningBoxes/>
-                </Scene>
+                <TerrainScene/>
             </Engine>
-        </div>
+        </RecoilRoot>
     )
 }
-
-export function RecoilComponentsTest(): JSX.Element {
-    return (
-        <>
-            <RecoilRoot>
-                <CharacterCounter />
-            </RecoilRoot>
-        </>
-    )
-}
-

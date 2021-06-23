@@ -7,6 +7,13 @@ import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 import {Nullable} from "@babylonjs/core/types"
 import {AdvancedDynamicTexture} from "@babylonjs/gui/2D/advancedDynamicTexture"
+import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins";
+import {Scene} from "react-babylonjs";
+import "@babylonjs/core/Physics/physicsEngineComponent"  // side-effect adds scene.enablePhysics function
+import * as CANNON from "cannon"
+window.CANNON = CANNON
+
+const gravityVector = new Vector3(0, -9.81, 0)
 
 export const BouncyBallScene: React.FC = () => {
     const sphereRef = useRef<Nullable<Mesh>>()
@@ -40,7 +47,7 @@ export const BouncyBallScene: React.FC = () => {
     }
 
     return (
-        <>
+        <Scene enablePhysics={[gravityVector, new CannonJSPlugin()]}>
             <arcRotateCamera name="arc" target={ new Vector3(0, 1, 0) }
                 alpha={-Math.PI / 2} beta={(0.5 + (Math.PI / 4))}
                 radius={4} minZ={0.001} wheelPrecision={50}
@@ -89,6 +96,6 @@ export const BouncyBallScene: React.FC = () => {
                 <physicsImpostor type={PhysicsImpostor.BoxImpostor} _options={{ mass: 0, restitution: 0.9 }} />
             </ground>
             <vrExperienceHelper webVROptions={{ createDeviceOrientationCamera: false }} enableInteractions={true} />
-        </>
+        </Scene>
     )
 }
