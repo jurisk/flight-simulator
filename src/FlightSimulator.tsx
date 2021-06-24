@@ -1,7 +1,16 @@
 import React, {Suspense, useRef} from "react"
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
 import {Color3} from "@babylonjs/core/Maths/math.color"
-import {Scene, Skybox, Task, TaskType, useAssetManager, useBeforeRender, useScene} from "react-babylonjs"
+import {
+    Model,
+    Scene,
+    Skybox,
+    Task,
+    TaskType,
+    useAssetManager,
+    useBeforeRender,
+    useScene
+} from "react-babylonjs"
 import {TextureAssetTask} from "@babylonjs/core"
 import {Nullable} from "@babylonjs/core/types"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
@@ -10,6 +19,7 @@ import "@babylonjs/inspector"
 const textureAssets: Task[] = [
     { taskType: TaskType.Texture, url: "assets/textures/earth.jpeg", name: "earth" },
     { taskType: TaskType.Texture, url: "assets/textures/worldHeightMap.jpeg", name: "world-height-map" },
+    { taskType: TaskType.Binary, url: "assets/models/f15/f15.gltf", name: "airplane-model" },
 ]
 
 function FlightSimulator(): JSX.Element {
@@ -34,7 +44,7 @@ function FlightSimulator(): JSX.Element {
             const pointLight = pointLightRef.current
 
             sun.position = pointLight.position
-            pointLight.position.x -= 0.5
+            pointLight.position.x -= 0.1
             if (pointLight.position.x < -90)
                 pointLight.position.x = 100
         }
@@ -51,6 +61,7 @@ function FlightSimulator(): JSX.Element {
                 diffuse={new Color3(1, 1, 1)}
                 specular={new Color3(0, 0, 0)}
             />
+
             <sphere
                 name="sun"
                 ref={sunRef}
@@ -63,6 +74,7 @@ function FlightSimulator(): JSX.Element {
                     emissiveColor={new Color3(1, 1, 0)}
                 />
             </sphere>
+
             <groundFromHeightMap
                 name="ground"
                 url="assets/textures/worldHeightMap.jpeg"
@@ -82,6 +94,14 @@ function FlightSimulator(): JSX.Element {
                     />
                 </standardMaterial>
             </groundFromHeightMap>
+
+            <Model
+                name="airplane-model"
+                rootUrl={"assets/models/f15/"}
+                sceneFilename="f15.gltf"
+                position={new Vector3(0, 10, 10)}
+                reportProgress={true}
+            />
 
             <Skybox rootUrl="assets/textures/skybox" size={800} />
         </>
