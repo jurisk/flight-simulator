@@ -1,8 +1,7 @@
-import React, {Suspense, useRef} from "react"
+import React, {Suspense} from "react"
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
 import {Color3} from "@babylonjs/core/Maths/math.color"
 import {
-    Model,
     Scene,
     Skybox,
     Task,
@@ -11,15 +10,13 @@ import {
     useBeforeRender,
     useScene
 } from "react-babylonjs"
-import {TextureAssetTask} from "@babylonjs/core"
-import {Nullable} from "@babylonjs/core/types"
-import {Mesh} from "@babylonjs/core/Meshes/mesh"
+import {MeshAssetTask, TextureAssetTask} from "@babylonjs/core"
 import "@babylonjs/inspector"
 
 const textureAssets: Task[] = [
     { taskType: TaskType.Texture, url: "assets/textures/earth.jpeg", name: "earth" },
     { taskType: TaskType.Texture, url: "assets/textures/worldHeightMap.jpeg", name: "world-height-map" },
-    { taskType: TaskType.Binary, url: "assets/models/f15/f15.gltf", name: "airplane-model" },
+    { taskType: TaskType.Mesh, rootUrl: "assets/models/f15/", sceneFilename: "f15.gltf", name: "airplane-model" },
 ]
 
 function FlightSimulator(): JSX.Element {
@@ -33,20 +30,28 @@ function FlightSimulator(): JSX.Element {
         reportProgress: true,
     })
 
-    const sunPosition = new Vector3(0, 30, 10)
+    const initialAirplanePosition = new Vector3(0, 10, 10)
+    const initialAirplaneRotation = new Vector3(Math.PI / 16, Math.PI * (7/8), 0)
 
-    const sunRef = useRef<Nullable<Mesh>>(null)
-    const pointLightRef = useRef<Nullable<Mesh>>(null)
+    const airplaneModelTask = assetManagerResult.taskNameMap["airplane-model"] as MeshAssetTask
+    const airplane = airplaneModelTask.loadedMeshes[0]
+    airplane.position = initialAirplanePosition
+    airplane.rotation = initialAirplaneRotation
+
+    const sunPosition = new Vector3(0, 30, 10)
+    const SpeedFactor = 0.02
 
     useBeforeRender(() => {
-        if (sunRef?.current && pointLightRef?.current) {
-            const sun = sunRef.current
-            const pointLight = pointLightRef.current
+        if (scene) {
+            const deltaTimeInMillis = scene.getEngine().getDeltaTime()
 
-            sun.position = pointLight.position
-            pointLight.position.x -= 0.1
-            if (pointLight.position.x < -90)
-                pointLight.position.x = 100
+            const airplaneModelTask = assetManagerResult.taskNameMap["airplane-model"] as MeshAssetTask
+            const airplane = airplaneModelTask.loadedMeshes[0]
+
+            const forward = new Vector3(0, 0, 1)
+            const direction = airplane.getDirection(forward).scale(deltaTimeInMillis * SpeedFactor)
+
+            airplane.position.addInPlace(direction)
         }
     })
 
@@ -56,7 +61,6 @@ function FlightSimulator(): JSX.Element {
 
             <pointLight
                 name="point-light"
-                ref={pointLightRef}
                 position={sunPosition}
                 diffuse={new Color3(1, 1, 1)}
                 specular={new Color3(0, 0, 0)}
@@ -64,7 +68,6 @@ function FlightSimulator(): JSX.Element {
 
             <sphere
                 name="sun"
-                ref={sunRef}
                 position={sunPosition}
                 segments={10}
                 diameter={4}
@@ -94,14 +97,6 @@ function FlightSimulator(): JSX.Element {
                     />
                 </standardMaterial>
             </groundFromHeightMap>
-
-            <Model
-                name="airplane-model"
-                rootUrl={"assets/models/f15/"}
-                sceneFilename="f15.gltf"
-                position={new Vector3(0, 10, 10)}
-                reportProgress={true}
-            />
 
             <Skybox rootUrl="assets/textures/skybox" size={800} />
         </>
