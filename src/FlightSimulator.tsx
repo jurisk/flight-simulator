@@ -1,4 +1,4 @@
-import React, {Suspense} from "react"
+import React, {Suspense, useRef} from "react"
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
 import {Color3} from "@babylonjs/core/Maths/math.color"
 import {
@@ -10,9 +10,16 @@ import {
     useBeforeRender,
     useScene
 } from "react-babylonjs"
-import {AbstractMesh, KeyboardEventTypes, MeshAssetTask, TextureAssetTask} from "@babylonjs/core"
+import {
+    AbstractMesh,
+    ArcRotateCamera,
+    KeyboardEventTypes,
+    MeshAssetTask,
+    TextureAssetTask
+} from "@babylonjs/core"
 import "@babylonjs/inspector"
 import {Set} from "immutable"
+import {Nullable} from "@babylonjs/core/types"
 
 const textureAssets: Task[] = [
     { taskType: TaskType.Texture, url: "assets/textures/earth.jpeg", name: "earth" },
@@ -20,7 +27,11 @@ const textureAssets: Task[] = [
     { taskType: TaskType.Mesh, rootUrl: "assets/models/f15/", sceneFilename: "f15.gltf", name: "airplane-model" },
 ]
 
-function FlightSimulator(): JSX.Element {
+interface FlightSimulatorProps {
+    camera: Nullable<ArcRotateCamera>,
+}
+
+function FlightSimulator({camera}: FlightSimulatorProps): JSX.Element {
     const scene = useScene()
 
     let pressedKeys: Set<string> = Set()
@@ -28,7 +39,7 @@ function FlightSimulator(): JSX.Element {
     if (scene) {
         scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
 
-        // TODO: This needs a click on the canvas before it starts registering - not sure what is the best way to fix
+        // TODO: This needs a click / focus on the canvas before it starts registering - not sure what is the best way to fix
         scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
             case KeyboardEventTypes.KEYDOWN:
@@ -55,7 +66,7 @@ function FlightSimulator(): JSX.Element {
     }
 
     const airplane = airplaneMesh()
-    console.log(airplane.material) // TODO: I have not applied "F 15 Specular.jpg" so it is not reflecting any light, but I am not sure how to do it
+    console.log(airplane.material) // TODO: I have not applied "F 15 Specular.jpg" and I don't think how it reflects light is correct
     airplane.position = initialAirplanePosition
     airplane.rotation = initialAirplaneRotation
 
@@ -77,7 +88,8 @@ function FlightSimulator(): JSX.Element {
             const airplane = airplaneMesh()
 
             const rotationAmount = Math.PI * deltaTimeInMillis * 0.001
-            const PitchFactor = 0.5
+            const PitchFactor = 0.4
+            const RudderFactor = 0.2
 
             if (pressedKeys.contains(LeftRoll)) {
                 airplane.rotate(new Vector3(0, 0, -1), rotationAmount)
@@ -88,11 +100,11 @@ function FlightSimulator(): JSX.Element {
             }
 
             if (pressedKeys.contains(LeftRudder)) {
-                airplane.rotate(new Vector3(0, 1, 0), rotationAmount)
+                airplane.rotate(new Vector3(0, 1, 0), rotationAmount * RudderFactor)
             }
 
             if (pressedKeys.contains(RightRudder)) {
-                airplane.rotate(new Vector3(0, -1, 0), rotationAmount)
+                airplane.rotate(new Vector3(0, -1, 0), rotationAmount * RudderFactor)
             }
 
             if (pressedKeys.contains(PitchUp)) {
@@ -117,6 +129,12 @@ function FlightSimulator(): JSX.Element {
                 .scale(deltaTimeInMillis * SpeedFactor)
 
             airplane.position.addInPlace(direction)
+
+            if (camera) {
+                camera.setTarget(airplane.position)
+            } else {
+                console.error("no camera")
+            }
         }
     })
 
@@ -155,9 +173,13 @@ function FlightSimulator(): JSX.Element {
 }
 
 export function TerrainScene(): JSX.Element {
+    const cameraRef = useRef<Nullable<ArcRotateCamera>>(null)
+    // TODO: why does this seem to always be `null` ?!
+
     return (
         <Scene>
             <arcRotateCamera
+                ref={cameraRef}
                 name="arc-rotate-camera"
                 alpha={-Math.PI / 2}
                 beta={(0.5 + (Math.PI / 4))}
@@ -172,7 +194,7 @@ export function TerrainScene(): JSX.Element {
             />
 
             <Suspense fallback={null}>
-                <FlightSimulator/>
+                <FlightSimulator camera={cameraRef.current}/>
             </Suspense>
         </Scene>
     )
