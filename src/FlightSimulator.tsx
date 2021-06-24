@@ -10,7 +10,7 @@ import {
     useBeforeRender,
     useScene
 } from "react-babylonjs"
-import {MeshAssetTask, TextureAssetTask} from "@babylonjs/core"
+import {AbstractMesh, MeshAssetTask, TextureAssetTask} from "@babylonjs/core"
 import "@babylonjs/inspector"
 
 const textureAssets: Task[] = [
@@ -33,8 +33,13 @@ function FlightSimulator(): JSX.Element {
     const initialAirplanePosition = new Vector3(0, 10, 10)
     const initialAirplaneRotation = new Vector3(Math.PI / 16, Math.PI * (7/8), 0)
 
-    const airplaneModelTask = assetManagerResult.taskNameMap["airplane-model"] as MeshAssetTask
-    const airplane = airplaneModelTask.loadedMeshes[0]
+    function airplaneMesh(): AbstractMesh {
+        const airplaneModelTask = assetManagerResult.taskNameMap["airplane-model"] as MeshAssetTask
+        return airplaneModelTask.loadedMeshes[0]
+    }
+
+    const airplane = airplaneMesh()
+    console.log(airplane.material) // TODO: I have not applied "F 15 Specular.jpg" so it is not reflecting any light, but I am not sure how to do it
     airplane.position = initialAirplanePosition
     airplane.rotation = initialAirplaneRotation
 
@@ -45,11 +50,12 @@ function FlightSimulator(): JSX.Element {
         if (scene) {
             const deltaTimeInMillis = scene.getEngine().getDeltaTime()
 
-            const airplaneModelTask = assetManagerResult.taskNameMap["airplane-model"] as MeshAssetTask
-            const airplane = airplaneModelTask.loadedMeshes[0]
+            const airplane = airplaneMesh()
 
             const forward = new Vector3(0, 0, 1)
-            const direction = airplane.getDirection(forward).scale(deltaTimeInMillis * SpeedFactor)
+            const direction = airplane
+                .getDirection(forward)
+                .scale(deltaTimeInMillis * SpeedFactor)
 
             airplane.position.addInPlace(direction)
         }
