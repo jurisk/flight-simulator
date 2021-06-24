@@ -12,7 +12,7 @@ import {
 } from "react-babylonjs"
 import {
     AbstractMesh,
-    ArcRotateCamera, FreeCamera,
+    FreeCamera,
     KeyboardEventTypes,
     MeshAssetTask,
     TextureAssetTask
@@ -80,7 +80,7 @@ function FlightSimulatorInner(): JSX.Element {
 
     useBeforeRender(() => {
         if (scene) {
-            scene.setActiveCameraByName("arc-rotate-camera")
+            scene.setActiveCameraByName("follow-camera")
 
             const deltaTimeInMillis = scene.getEngine().getDeltaTime()
 
@@ -129,35 +129,26 @@ function FlightSimulatorInner(): JSX.Element {
 
             airplane.position.addInPlace(direction)
 
-            console.log(freeCameraRef.current, cameraRef.current)
-
             const camera = cameraRef.current
             if (camera) {
-                camera.setTarget(airplane.position)
+                const followDirection = new Vector3(0, 0.2, -1)
+                const FollowCameraDistance = 20
+                camera.position = airplane.position.add(airplane.getDirection(followDirection).scale(FollowCameraDistance))
+                camera.target = airplane.position
             } else {
                 console.error("no camera")
             }
         }
     })
 
-    const cameraRef = useRef<Nullable<ArcRotateCamera>>(null)
-    const freeCameraRef = useRef<Nullable<FreeCamera>>(null)
+    const cameraRef = useRef<Nullable<FreeCamera>>(null)
 
     return (
         <>
-            <arcRotateCamera
+            <freeCamera
                 ref={cameraRef}
-                name="arc-rotate-camera"
-                alpha={-Math.PI / 2}
-                beta={(0.5 + (Math.PI / 4))}
-                radius={100}
-                target={ new Vector3(0, 0, 0) }
-                minZ={0.001}
-                wheelPrecision={50}
-                lowerRadiusLimit={30}
-                upperRadiusLimit={150}
-                lowerBetaLimit={0.1}
-                upperBetaLimit={(Math.PI / 2) * 0.9}
+                name="follow-camera"
+                position={new Vector3(0, 0, 0)}
             />
 
             <directionalLight
@@ -195,7 +186,7 @@ function FlightSimulatorInner(): JSX.Element {
 export function FlightSimulator(): JSX.Element {
     return (
         <Scene>
-            <universalCamera name="universal-camera" position={new Vector3(0, 0, 0)}/>
+            <universalCamera name="initial-camera" position={new Vector3(0, 0, 0)}/>
             <Suspense fallback={<Fallback/>}>
                 <FlightSimulatorInner/>
             </Suspense>
