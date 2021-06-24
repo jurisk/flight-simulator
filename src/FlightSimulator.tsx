@@ -12,7 +12,7 @@ import {
 } from "react-babylonjs"
 import {
     AbstractMesh,
-    ArcRotateCamera,
+    ArcRotateCamera, FreeCamera,
     KeyboardEventTypes,
     MeshAssetTask,
     TextureAssetTask
@@ -20,6 +20,7 @@ import {
 import "@babylonjs/inspector"
 import {Set} from "immutable"
 import {Nullable} from "@babylonjs/core/types"
+import {Fallback} from "./Fallback"
 
 const textureAssets: Task[] = [
     { taskType: TaskType.Texture, url: "assets/textures/earth.jpeg", name: "earth" },
@@ -27,11 +28,7 @@ const textureAssets: Task[] = [
     { taskType: TaskType.Mesh, rootUrl: "assets/models/f15/", sceneFilename: "f15.gltf", name: "airplane-model" },
 ]
 
-interface FlightSimulatorProps {
-    camera: Nullable<ArcRotateCamera>,
-}
-
-function FlightSimulator({camera}: FlightSimulatorProps): JSX.Element {
+function FlightSimulatorInner(): JSX.Element {
     const scene = useScene()
 
     let pressedKeys: Set<string> = Set()
@@ -83,6 +80,8 @@ function FlightSimulator({camera}: FlightSimulatorProps): JSX.Element {
 
     useBeforeRender(() => {
         if (scene) {
+            scene.setActiveCameraByName("arc-rotate-camera")
+
             const deltaTimeInMillis = scene.getEngine().getDeltaTime()
 
             const airplane = airplaneMesh()
@@ -130,6 +129,9 @@ function FlightSimulator({camera}: FlightSimulatorProps): JSX.Element {
 
             airplane.position.addInPlace(direction)
 
+            console.log(freeCameraRef.current, cameraRef.current)
+
+            const camera = cameraRef.current
             if (camera) {
                 camera.setTarget(airplane.position)
             } else {
@@ -138,8 +140,26 @@ function FlightSimulator({camera}: FlightSimulatorProps): JSX.Element {
         }
     })
 
+    const cameraRef = useRef<Nullable<ArcRotateCamera>>(null)
+    const freeCameraRef = useRef<Nullable<FreeCamera>>(null)
+
     return (
         <>
+            <arcRotateCamera
+                ref={cameraRef}
+                name="arc-rotate-camera"
+                alpha={-Math.PI / 2}
+                beta={(0.5 + (Math.PI / 4))}
+                radius={100}
+                target={ new Vector3(0, 0, 0) }
+                minZ={0.001}
+                wheelPrecision={50}
+                lowerRadiusLimit={30}
+                upperRadiusLimit={150}
+                lowerBetaLimit={0.1}
+                upperBetaLimit={(Math.PI / 2) * 0.9}
+            />
+
             <directionalLight
                 name="directional-light"
                 direction={new Vector3(-1, -1, 0)}
@@ -172,29 +192,12 @@ function FlightSimulator({camera}: FlightSimulatorProps): JSX.Element {
     )
 }
 
-export function TerrainScene(): JSX.Element {
-    const cameraRef = useRef<Nullable<ArcRotateCamera>>(null)
-    // TODO: why does this seem to always be `null` ?!
-
+export function FlightSimulator(): JSX.Element {
     return (
         <Scene>
-            <arcRotateCamera
-                ref={cameraRef}
-                name="arc-rotate-camera"
-                alpha={-Math.PI / 2}
-                beta={(0.5 + (Math.PI / 4))}
-                radius={100}
-                target={ new Vector3(0, 0, 0) }
-                minZ={0.001}
-                wheelPrecision={50}
-                lowerRadiusLimit={30}
-                upperRadiusLimit={150}
-                lowerBetaLimit={0.1}
-                upperBetaLimit={(Math.PI / 2) * 0.9}
-            />
-
-            <Suspense fallback={null}>
-                <FlightSimulator camera={cameraRef.current}/>
+            <universalCamera name="universal-camera" position={new Vector3(0, 0, 0)}/>
+            <Suspense fallback={<Fallback/>}>
+                <FlightSimulatorInner/>
             </Suspense>
         </Scene>
     )
