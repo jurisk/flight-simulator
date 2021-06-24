@@ -10,8 +10,9 @@ import {
     useBeforeRender,
     useScene
 } from "react-babylonjs"
-import {AbstractMesh, MeshAssetTask, TextureAssetTask} from "@babylonjs/core"
+import {AbstractMesh, KeyboardEventTypes, MeshAssetTask, TextureAssetTask} from "@babylonjs/core"
 import "@babylonjs/inspector"
+import {Set} from "immutable"
 
 const textureAssets: Task[] = [
     { taskType: TaskType.Texture, url: "assets/textures/earth.jpeg", name: "earth" },
@@ -21,8 +22,22 @@ const textureAssets: Task[] = [
 
 function FlightSimulator(): JSX.Element {
     const scene = useScene()
+
+    let pressedKeys: Set<string> = Set()
+
     if (scene) {
         scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
+
+        scene.onKeyboardObservable.add((kbInfo) => {
+            switch (kbInfo.type) {
+            case KeyboardEventTypes.KEYDOWN:
+                pressedKeys = pressedKeys.add(kbInfo.event.key)
+                break
+            case KeyboardEventTypes.KEYUP:
+                pressedKeys = pressedKeys.remove(kbInfo.event.key)
+                break
+            }
+        })
     }
 
     const assetManagerResult = useAssetManager(textureAssets, {
@@ -46,11 +61,55 @@ function FlightSimulator(): JSX.Element {
     const sunPosition = new Vector3(0, 30, 10)
     const SpeedFactor = 0.02
 
+    const LeftRoll = "s"
+    const RightRoll = "f"
+    const LeftRudder = "w"
+    const RightRudder = "r"
+    const PitchUp = "d"
+    const PitchDown = "e"
+    const ThrottleUp = "a"
+    const ThrottleDown = "z"
+
     useBeforeRender(() => {
         if (scene) {
             const deltaTimeInMillis = scene.getEngine().getDeltaTime()
 
             const airplane = airplaneMesh()
+
+            const rotationAmount = Math.PI * deltaTimeInMillis * 0.001
+            const PitchFactor = 0.5
+
+            if (pressedKeys.contains(LeftRoll)) {
+                airplane.rotate(new Vector3(0, 0, -1), rotationAmount)
+            }
+
+            if (pressedKeys.contains(RightRoll)) {
+                airplane.rotate(new Vector3(0, 0, 1), rotationAmount)
+            }
+
+            if (pressedKeys.contains(LeftRudder)) {
+                airplane.rotate(new Vector3(0, 1, 0), rotationAmount)
+            }
+
+            if (pressedKeys.contains(RightRudder)) {
+                airplane.rotate(new Vector3(0, -1, 0), rotationAmount)
+            }
+
+            if (pressedKeys.contains(PitchUp)) {
+                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * PitchFactor)
+            }
+
+            if (pressedKeys.contains(PitchDown)) {
+                airplane.rotate(new Vector3(-1, 0, 0), rotationAmount * PitchFactor)
+            }
+
+            if (pressedKeys.contains(ThrottleUp)) {
+                console.log("TODO - implement throttle up")
+            }
+
+            if (pressedKeys.contains(ThrottleDown)) {
+                console.log("TODO - implement throttle down")
+            }
 
             const forward = new Vector3(0, 0, 1)
             const direction = airplane
