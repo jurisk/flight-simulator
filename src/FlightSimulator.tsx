@@ -28,6 +28,7 @@ function FlightSimulator(): JSX.Element {
     if (scene) {
         scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
 
+        // TODO: This needs a click on the canvas before it starts registering - not sure what is the best way to fix
         scene.onKeyboardObservable.add((kbInfo) => {
             switch (kbInfo.type) {
             case KeyboardEventTypes.KEYDOWN:
@@ -58,7 +59,6 @@ function FlightSimulator(): JSX.Element {
     airplane.position = initialAirplanePosition
     airplane.rotation = initialAirplaneRotation
 
-    const sunPosition = new Vector3(0, 30, 10)
     const SpeedFactor = 0.02
 
     const LeftRoll = "s"
@@ -122,26 +122,12 @@ function FlightSimulator(): JSX.Element {
 
     return (
         <>
-            <hemisphericLight name='hemi-light' intensity={0.1} direction={Vector3.Up()} />
-
-            <pointLight
-                name="point-light"
-                position={sunPosition}
+            <directionalLight
+                name="directional-light"
+                direction={new Vector3(-1, -1, 0)}
                 diffuse={new Color3(1, 1, 1)}
                 specular={new Color3(0, 0, 0)}
             />
-
-            <sphere
-                name="sun"
-                position={sunPosition}
-                segments={10}
-                diameter={4}
-            >
-                <standardMaterial
-                    name="sun-material"
-                    emissiveColor={new Color3(1, 1, 0)}
-                />
-            </sphere>
 
             <groundFromHeightMap
                 name="ground"
