@@ -15,7 +15,8 @@ import {
     FreeCamera,
     KeyboardEventTypes,
     MeshAssetTask,
-    TextureAssetTask
+    TextureAssetTask,
+    Scene as BabylonScene,
 } from "@babylonjs/core"
 import "@babylonjs/inspector"
 import {Set} from "immutable"
@@ -55,7 +56,7 @@ function FlightSimulatorInner(): JSX.Element {
     })
 
     const initialAirplanePosition = new Vector3(0, 10, 10)
-    const initialAirplaneRotation = new Vector3(Math.PI / 16, Math.PI * (7/8), 0)
+    const initialAirplaneRotation = new Vector3(0, Math.PI * (7/8), 0)
 
     function airplaneMesh(): AbstractMesh {
         const airplaneModelTask = assetManagerResult.taskNameMap["airplane-model"] as MeshAssetTask
@@ -67,8 +68,6 @@ function FlightSimulatorInner(): JSX.Element {
     airplane.position = initialAirplanePosition
     airplane.rotation = initialAirplaneRotation
 
-    const SpeedFactor = 0.02
-
     const LeftRoll = "s"
     const RightRoll = "f"
     const LeftRudder = "w"
@@ -78,6 +77,11 @@ function FlightSimulatorInner(): JSX.Element {
     const ThrottleUp = "a"
     const ThrottleDown = "z"
 
+    let throttle = 0.75
+    let roll = 0
+    let rudder = 0
+    let pitch = 0
+
     useBeforeRender(() => {
         if (scene) {
             scene.setActiveCameraByName("follow-camera")
@@ -85,33 +89,47 @@ function FlightSimulatorInner(): JSX.Element {
 
             const airplane = airplaneMesh()
 
-            const ifKey = (key: string, value: number): number => pressedKeys.contains(key) ? value : 0
+            const control = (name: string): number => pressedKeys.contains(name) ? deltaTimeInMillis : 0
+            const controls = (negative: string, positive: string): number => control(positive) - control(negative)
+            const clamp = (value: number, diff: number, min: number, max: number): number => Math.max(Math.min(value + diff, max), min)
+            const normalize = (value: number): number =>
+                value === 0 ? 0 : (value > 0 ? +1 : -1)
+            const clampWithReversal = (value: number, diff: number, coef: number): number =>
+                diff === 0
+                    ? clamp(value, -deltaTimeInMillis * coef * normalize(value), -1, +1) // return controls back to neutral if not touched
+                    : clamp(value, diff * coef, -1, +1)
 
             const rotationAmount = Math.PI * deltaTimeInMillis * 0.001
 
-            const roll = ifKey(LeftRoll, -1) + ifKey(RightRoll, +1)
+            const rollPos = controls(LeftRoll, RightRoll)
+            roll = clampWithReversal(roll, rollPos, 0.001)
             airplane.rotate(new Vector3(0, 0, 1), rotationAmount * roll)
 
-            const rudder = ifKey(LeftRudder, -1) + ifKey(RightRudder, +1)
+            const rudderPos = controls(LeftRudder, RightRudder)
+            rudder = clampWithReversal(rudder, rudderPos, 0.001)
             const RudderFactor = 0.2
             airplane.rotate(new Vector3(0, 1, 0), rotationAmount * RudderFactor * rudder)
 
-            const PitchFactor = 0.4
-            const pitch = ifKey(PitchDown, -1) + ifKey(PitchUp, +1)
-            airplane.rotate(new Vector3(1, 0, 0), rotationAmount * PitchFactor * pitch)
-
-            if (pressedKeys.contains(ThrottleUp)) {
-                console.log("TODO - implement throttle up")
+            const pitchPos = controls(PitchDown, PitchUp)
+            pitch = clampWithReversal(pitch, pitchPos, 0.001)
+            if (pitch < 0) { // we can pitch down worse than we can pitch up
+                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * pitch * 0.05)
+            } else if (pitch > 0) {
+                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * pitch * 0.4)
             }
 
-            if (pressedKeys.contains(ThrottleDown)) {
-                console.log("TODO - implement throttle down")
-            }
+            const throttlePos = controls(ThrottleDown, ThrottleUp)
+            const MinThrottle = 0.1
+            const MaxThrottle = 1
+            throttle = clamp(throttle, throttlePos * 0.001, MinThrottle, MaxThrottle)
+            // TODO: throttle isn't really speed, have to decouple
 
             const forward = new Vector3(0, 0, 1)
+            const SpeedFactor = 0.02
+
             const direction = airplane
                 .getDirection(forward)
-                .scale(deltaTimeInMillis * SpeedFactor)
+                .scale(deltaTimeInMillis * SpeedFactor * throttle)
 
             airplane.position.addInPlace(direction)
 
@@ -128,6 +146,7 @@ function FlightSimulatorInner(): JSX.Element {
     })
 
     const cameraRef = useRef<Nullable<FreeCamera>>(null)
+    const edgeLength = 1000
 
     return (
         <>
@@ -147,14 +166,14 @@ function FlightSimulatorInner(): JSX.Element {
             <hemisphericLight
                 name="hemispheric-light"
                 direction={new Vector3(0, 1, 0)}
-                intensity={0.1}
+                intensity={0.2}
             />
 
             <groundFromHeightMap
-                name="ground"
+                name="map"
                 url="assets/textures/worldHeightMap.jpeg"
-                width={200}
-                height={200}
+                width={edgeLength}
+                height={edgeLength}
                 subdivisions={256}
                 minHeight={0}
                 maxHeight={10}
@@ -170,14 +189,31 @@ function FlightSimulatorInner(): JSX.Element {
                 </standardMaterial>
             </groundFromHeightMap>
 
-            <Skybox rootUrl="assets/textures/skybox" size={800} />
+            <ground
+                name="ground"
+                width={edgeLength * 10}
+                height={edgeLength * 10}
+                subdivisions={256}
+            >
+                <standardMaterial
+                    name="ground-material"
+                    diffuseColor={new Color3(0.004, 0.004, 0.2)}
+                />
+            </ground>
+
+            <Skybox rootUrl="assets/textures/skybox" size={edgeLength} />
         </>
     )
 }
 
 export function FlightSimulator(): JSX.Element {
     return (
-        <Scene>
+        <Scene
+            fogEnabled={true}
+            fogMode={BabylonScene.FOGMODE_EXP2}
+            fogDensity={0.002}
+            fogColor={new Color3(0.45, 0.65, 1.0)}
+        >
             <universalCamera name="initial-camera" position={new Vector3(0, 0, 0)}/>
             <Suspense fallback={<Fallback/>}>
                 <FlightSimulatorInner/>
