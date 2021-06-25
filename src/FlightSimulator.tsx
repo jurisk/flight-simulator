@@ -119,10 +119,10 @@ function FlightSimulatorInner(): JSX.Element {
             }
 
             const throttlePos = controls(ThrottleDown, ThrottleUp)
-            const MinThrottle = 0.1
+            const MinThrottle = 0
             const MaxThrottle = 1
             throttle = clamp(throttle, throttlePos * 0.001, MinThrottle, MaxThrottle)
-            // TODO: throttle isn't really speed, have to decouple
+            // TODO: throttle isn't really speed, have to decouple and add stalling
 
             const forward = new Vector3(0, 0, 1)
             const SpeedFactor = 0.02
@@ -166,7 +166,7 @@ function FlightSimulatorInner(): JSX.Element {
             <hemisphericLight
                 name="hemispheric-light"
                 direction={new Vector3(0, 1, 0)}
-                intensity={0.2}
+                intensity={0.25}
             />
 
             <groundFromHeightMap
@@ -176,10 +176,10 @@ function FlightSimulatorInner(): JSX.Element {
                 height={edgeLength}
                 subdivisions={256}
                 minHeight={0}
-                maxHeight={10}
+                maxHeight={40}
             >
                 <standardMaterial
-                    name="ground-material"
+                    name="map-material"
                 >
                     <texture
                         url=""
@@ -189,19 +189,18 @@ function FlightSimulatorInner(): JSX.Element {
                 </standardMaterial>
             </groundFromHeightMap>
 
-            <ground
+            <disc
                 name="ground"
-                width={edgeLength * 10}
-                height={edgeLength * 10}
-                subdivisions={256}
+                radius={edgeLength * 2}
+                rotation-x={Math.PI / 2}
             >
                 <standardMaterial
                     name="ground-material"
                     diffuseColor={new Color3(0.004, 0.004, 0.2)}
                 />
-            </ground>
+            </disc>
 
-            <Skybox rootUrl="assets/textures/skybox" size={edgeLength} />
+            <Skybox rootUrl="assets/textures/skybox" size={ edgeLength } />
         </>
     )
 }
