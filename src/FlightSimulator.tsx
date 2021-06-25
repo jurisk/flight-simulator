@@ -158,6 +158,12 @@ function FlightSimulatorInner(): JSX.Element {
                 specular={new Color3(0, 0, 0)}
             />
 
+            <hemisphericLight
+                name="hemispheric-light"
+                direction={new Vector3(0, 1, 0)}
+                intensity={0.1}
+            />
+
             <groundFromHeightMap
                 name="ground"
                 url="assets/textures/worldHeightMap.jpeg"
