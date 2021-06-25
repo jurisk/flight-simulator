@@ -81,38 +81,24 @@ function FlightSimulatorInner(): JSX.Element {
     useBeforeRender(() => {
         if (scene) {
             scene.setActiveCameraByName("follow-camera")
-
             const deltaTimeInMillis = scene.getEngine().getDeltaTime()
 
             const airplane = airplaneMesh()
 
+            const ifKey = (key: string, value: number): number => pressedKeys.contains(key) ? value : 0
+
             const rotationAmount = Math.PI * deltaTimeInMillis * 0.001
-            const PitchFactor = 0.4
+
+            const roll = ifKey(LeftRoll, -1) + ifKey(RightRoll, +1)
+            airplane.rotate(new Vector3(0, 0, 1), rotationAmount * roll)
+
+            const rudder = ifKey(LeftRudder, -1) + ifKey(RightRudder, +1)
             const RudderFactor = 0.2
+            airplane.rotate(new Vector3(0, 1, 0), rotationAmount * RudderFactor * rudder)
 
-            if (pressedKeys.contains(LeftRoll)) {
-                airplane.rotate(new Vector3(0, 0, -1), rotationAmount)
-            }
-
-            if (pressedKeys.contains(RightRoll)) {
-                airplane.rotate(new Vector3(0, 0, 1), rotationAmount)
-            }
-
-            if (pressedKeys.contains(LeftRudder)) {
-                airplane.rotate(new Vector3(0, 1, 0), rotationAmount * RudderFactor)
-            }
-
-            if (pressedKeys.contains(RightRudder)) {
-                airplane.rotate(new Vector3(0, -1, 0), rotationAmount * RudderFactor)
-            }
-
-            if (pressedKeys.contains(PitchUp)) {
-                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * PitchFactor)
-            }
-
-            if (pressedKeys.contains(PitchDown)) {
-                airplane.rotate(new Vector3(-1, 0, 0), rotationAmount * PitchFactor)
-            }
+            const PitchFactor = 0.4
+            const pitch = ifKey(PitchDown, -1) + ifKey(PitchUp, +1)
+            airplane.rotate(new Vector3(1, 0, 0), rotationAmount * PitchFactor * pitch)
 
             if (pressedKeys.contains(ThrottleUp)) {
                 console.log("TODO - implement throttle up")
