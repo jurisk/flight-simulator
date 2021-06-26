@@ -2,6 +2,7 @@ import React, {useRef} from "react"
 import {Nullable} from "@babylonjs/core/types"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {useBeforeRender} from "react-babylonjs"
+import {Vector3} from "@babylonjs/core/Maths/math.vector"
 
 export const Fallback: () => JSX.Element = () => {
     const boxRef = useRef<Nullable<Mesh>>()
@@ -19,5 +20,8 @@ export const Fallback: () => JSX.Element = () => {
         }
     })
 
-    return <box ref={boxRef} name='fallback' size={2} />
+    return <>
+        <universalCamera name="initial-camera" position={new Vector3(0, 0, 0)}/>
+        <box ref={boxRef} name='fallback' size={2} />
+    </>
 }
