@@ -13,8 +13,22 @@ import {Color3} from "@babylonjs/core/Maths/math.color"
 import "@babylonjs/inspector"
 import {Nullable} from "@babylonjs/core/types"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
+import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
+import {Controls, updateControls} from "./controls"
 
 const onSceneReady = (scene: Scene) => {
+    let pressedKeys: PressedKeys = newPressedKeys
+    scene.onKeyboardObservable.add((e) => {
+        pressedKeys = updateKeys(pressedKeys, e)
+    })
+
+    let controls: Controls = {
+        throttle: 0.75,
+        roll: 0,
+        rudder: 0,
+        pitch: 0,
+    }
+
     scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
 
     const engine = scene.getEngine()
@@ -73,6 +87,33 @@ const onSceneReady = (scene: Scene) => {
 
     scene.registerBeforeRender(() => {
         if (airplane) {
+            const deltaTime = scene.deltaTime
+            controls = updateControls(controls, deltaTime, pressedKeys)
+
+            const rotationAmount = Math.PI * deltaTime * 0.001
+
+            airplane.rotate(new Vector3(0, 0, 1), rotationAmount * controls.roll)
+
+            const RudderFactor = 0.2
+            airplane.rotate(new Vector3(0, 1, 0), rotationAmount * RudderFactor * controls.rudder)
+
+            if (controls.pitch < 0) { // we can pitch down worse than we can pitch up
+                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * controls.pitch * 0.05)
+            } else if (controls.pitch > 0) {
+                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * controls.pitch * 0.4)
+            }
+
+            const forward = new Vector3(0, 0, 1)
+            const SpeedFactor = 0.02
+
+            // TODO: throttle isn't really speed, have to decouple and add inertia and stalling
+            const direction = airplane
+                .getDirection(forward)
+                .scale(deltaTime * SpeedFactor * controls.throttle)
+
+            // TODO: move to more advanced physics such as https://www.youtube.com/watch?v=p3jDJ9FtTyM / https://github.com/gasgiant/Aircraft-Physics
+            airplane.position.addInPlace(direction)
+
             camera.target = airplane.position
         }
     })
