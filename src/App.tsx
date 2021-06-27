@@ -4,12 +4,12 @@ import { RecoilRoot } from "recoil"
 import React from "react"
 
 import "./App.css"
-import {DeclarativeFlightSimulator} from "./DeclarativeFlightSimulator"
+import {FlightSimulator} from "./FlightSimulator"
 
 export const App: React.FC = () => {
     return (
         <RecoilRoot>
-            <DeclarativeFlightSimulator/>
+            <FlightSimulator/>
         </RecoilRoot>
     )
 }

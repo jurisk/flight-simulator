@@ -1,59 +1,91 @@
 import React from "react"
-import {FreeCamera, Vector3, HemisphericLight, MeshBuilder, Scene} from "@babylonjs/core"
+import {
+    Vector3,
+    Scene,
+    ArcRotateCamera,
+    PointLight,
+    AssetsManager, HemisphericLight, Scene as BabylonScene, AbstractMesh, MeshBuilder, StandardMaterial,
+} from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
-import {Mesh} from "@babylonjs/core/Meshes/mesh"
+import "@babylonjs/loaders/glTF"
+import {Color3} from "@babylonjs/core/Maths/math.color"
+import "@babylonjs/inspector"
 import {Nullable} from "@babylonjs/core/types"
-
-let box: Nullable<Mesh> = null
+import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 
 const onSceneReady = (scene: Scene) => {
-    // This creates and positions a free camera (non-mesh)
-    const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene)
+    scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
 
-    // This targets the camera to scene origin
-    camera.setTarget(Vector3.Zero())
+    const engine = scene.getEngine()
+    const canvas = engine.getRenderingCanvas()
 
-    const canvas = scene.getEngine().getRenderingCanvas()
+    const SkyBlue = Color3.FromHexString("#87ceeb")
+    scene.clearColor = SkyBlue.toColor4(1)
+    scene.fogEnabled = true
+    scene.fogMode = BabylonScene.FOGMODE_EXP2
+    scene.fogDensity = 0.002
+    scene.fogColor = SkyBlue
 
-    // This attaches the camera to the canvas
-    camera.attachControl(canvas, true)
+    new PointLight("directional-light", new Vector3(-1, -1, 0), scene)
 
-    // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-    const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene)
+    const hemiLight = new HemisphericLight("hemi-light", new Vector3(0, 1, 0), scene)
+    hemiLight.intensity = 0.25
 
-    // Default intensity is 1. Let's dim the light a small amount
-    light.intensity = 0.7
+    const camera = new ArcRotateCamera("arc-rotate-camera", 0, 0.8, 100, Vector3.Zero(), scene)
+    camera.attachControl(canvas, false)
 
-    // Our built-in 'box' shape.
-    box = MeshBuilder.CreateBox("box", {size: 2}, scene)
-
-    // Move the box upward 1/2 its height
-    box.position.y = 1
-
-    // Our built-in 'ground' shape.
-    MeshBuilder.CreateGround("ground", {width: 6, height: 6}, scene)
-}
-
-/**
- * Will run on every frame render.  We are spinning the box on y-axis.
- */
-const onRender = (scene: Scene) => {
-    if (box) {
-        const deltaTimeInMillis = scene.getEngine().getDeltaTime()
-
-        const rpm = 10
-        box.rotation.y += ((rpm / 60) * Math.PI * 2 * (deltaTimeInMillis / 1000))
-    }
-}
-
-export function FlightSimulator(): JSX.Element {
-    return (
-        <SceneComponent
-            antialias={true}
-            onSceneReady={onSceneReady}
-            onRender={onRender}
-            id='canvas'
-        />
+    const assetsManager = new AssetsManager(scene)
+    const airplaneTask = assetsManager.addMeshTask(
+        "f15 task",
+        ["F_15_C", "GLass", "TAnks"],
+        "assets/models/f15/",
+        "f15.gltf",
     )
+
+    const initialAirplanePosition = new Vector3(0, 10, 10)
+    const initialAirplaneRotation = new Vector3(0, Math.PI * (7/8), 0)
+
+    let airplane: Nullable<AbstractMesh> = null
+    airplaneTask.onSuccess = task => {
+        airplane = task.loadedMeshes[0]
+        airplane.position = initialAirplanePosition
+        airplane.rotation = initialAirplaneRotation
+
+        const followDirection = new Vector3(0, 0.2, -1)
+        const FollowCameraDistance = 20
+        camera.position = airplane.position.add(airplane.getDirection(followDirection).scale(FollowCameraDistance))
+    }
+
+    const edgeLength = 1000
+    const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
+        width: edgeLength,
+        height: edgeLength,
+        subdivisions: 256,
+        minHeight: 0,
+        maxHeight: 40,
+    }, scene)
+    const mapMaterial = new StandardMaterial("map-material", scene)
+    mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
+    map.material = mapMaterial
+
+    airplaneTask.onError = (task, error) => console.error(task, error)
+
+    scene.registerBeforeRender(() => {
+        if (airplane) {
+            camera.target = airplane.position
+        }
+    })
+
+    assetsManager.onFinish = () => engine.runRenderLoop(() => scene.render())
+
+    assetsManager.load()
 }
+
+export const FlightSimulator = (): JSX.Element => (
+    <SceneComponent
+        antialias={true}
+        onSceneReady={onSceneReady}
+        id='canvas'
+    />
+)

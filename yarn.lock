@@ -2878,6 +2878,19 @@ babylonjs-hook@^0.1.0-beta.0:
   resolved "https://registry.yarnpkg.com/babylonjs-hook/-/babylonjs-hook-0.1.0-beta.0.tgz#eea870b90d42b26bc01a33b78d1d654ebf4499b3"
   integrity sha512-YQh6uPtMG726J2+Tcw9GLs/ekCsLxfLUcC/yq4+MXw93hHEykZDmzrafCv1hV0V7oq8P//kWxYUalEf6jaO2dA==
 
+babylonjs-loaders@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/babylonjs-loaders/-/babylonjs-loaders-4.2.0.tgz#3d536cb72bf8650fe7f1cee12380bea3227d79c0"
+  integrity sha512-GGLvo4ibbSHMY0Kj/DBu4827NBWeDT0NOBi/UuifXltzqPJtJRi3PCEcELj4Ga8cRxkfYi/7PMKcce2zVnpLZA==
+  dependencies:
+    babylonjs "4.2.0"
+    babylonjs-gltf2interface "4.2.0"
+
+babylonjs@4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/babylonjs/-/babylonjs-4.2.0.tgz#8f0d957a726de4c065904b14c2f413f455145d38"
+  integrity sha512-4hniJzWRkV0tDTTYGEHPk1lnfWn0HIw7HOvNWPK0rpUIbJooyeD9E5uVyHnslDedt0mtrA7QZu4i2Cz1DEmSsA==
+
 balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
