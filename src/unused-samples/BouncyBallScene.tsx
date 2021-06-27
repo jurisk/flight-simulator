@@ -7,8 +7,8 @@ import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 import {Nullable} from "@babylonjs/core/types"
 import {AdvancedDynamicTexture} from "@babylonjs/gui/2D/advancedDynamicTexture"
-import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins";
-import {Scene} from "react-babylonjs";
+import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
+import {Scene} from "react-babylonjs"
 import "@babylonjs/core/Physics/physicsEngineComponent"  // side-effect adds scene.enablePhysics function
 import * as CANNON from "cannon"
 window.CANNON = CANNON
