@@ -15,6 +15,7 @@ import {Nullable} from "@babylonjs/core/types"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
+import {updateAirplane} from "./airplane"
 
 const onSceneReady = (scene: Scene) => {
     let pressedKeys: PressedKeys = newPressedKeys
@@ -57,6 +58,13 @@ const onSceneReady = (scene: Scene) => {
         "f15.gltf",
     )
 
+    const ufoTask = assetsManager.addMeshTask(
+        "ufo task",
+        ["UFO_body", "UFO_cockpit"],
+        "assets/models/ufo/",
+        "ufo.glb",
+    )
+
     const initialAirplanePosition = new Vector3(0, 10, 10)
     const initialAirplaneRotation = new Vector3(0, Math.PI * (7/8), 0)
 
@@ -70,6 +78,20 @@ const onSceneReady = (scene: Scene) => {
         const FollowCameraDistance = 20
         camera.position = airplane.position.add(airplane.getDirection(followDirection).scale(FollowCameraDistance))
     }
+    airplaneTask.onError = (task, error) => console.error(task, error)
+
+    const initialUfoPosition = new Vector3(20, 20, 20)
+    const initialUfoRotation = new Vector3(0, 0, 0)
+
+    let ufo: Nullable<AbstractMesh> = null
+    ufoTask.onSuccess = task => {
+        console.log(task)
+        ufo = task.loadedMeshes[0]
+        ufo.scaling = new Vector3(0.1, 0.1, 0.1)
+        ufo.position = initialUfoPosition
+        ufo.rotation = initialUfoRotation
+    }
+    ufoTask.onError = (task, error) => console.error(task, error)
 
     const edgeLength = 1000
     const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
@@ -83,36 +105,12 @@ const onSceneReady = (scene: Scene) => {
     mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
     map.material = mapMaterial
 
-    airplaneTask.onError = (task, error) => console.error(task, error)
-
     scene.registerBeforeRender(() => {
-        if (airplane) {
+        if (airplane && ufo) {
             const deltaTime = scene.deltaTime
             controls = updateControls(controls, deltaTime, pressedKeys)
 
-            const rotationAmount = Math.PI * deltaTime * 0.001
-
-            airplane.rotate(new Vector3(0, 0, 1), rotationAmount * controls.roll)
-
-            const RudderFactor = 0.2
-            airplane.rotate(new Vector3(0, 1, 0), rotationAmount * RudderFactor * controls.rudder)
-
-            if (controls.pitch < 0) { // we can pitch down worse than we can pitch up
-                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * controls.pitch * 0.05)
-            } else if (controls.pitch > 0) {
-                airplane.rotate(new Vector3(1, 0, 0), rotationAmount * controls.pitch * 0.4)
-            }
-
-            const forward = new Vector3(0, 0, 1)
-            const SpeedFactor = 0.02
-
-            // TODO: throttle isn't really speed, have to decouple and add inertia and stalling
-            const direction = airplane
-                .getDirection(forward)
-                .scale(deltaTime * SpeedFactor * controls.throttle)
-
-            // TODO: move to more advanced physics such as https://www.youtube.com/watch?v=p3jDJ9FtTyM / https://github.com/gasgiant/Aircraft-Physics
-            airplane.position.addInPlace(direction)
+            updateAirplane(airplane, deltaTime, controls)
 
             camera.target = airplane.position
         }
