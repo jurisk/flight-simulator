@@ -16,6 +16,7 @@ import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {updateAirplane} from "./airplane"
+import {updateUfo} from "./ufo"
 
 const onSceneReady = (scene: Scene) => {
     let pressedKeys: PressedKeys = newPressedKeys
@@ -35,7 +36,7 @@ const onSceneReady = (scene: Scene) => {
     const engine = scene.getEngine()
     const canvas = engine.getRenderingCanvas()
 
-    const SkyBlue = Color3.FromHexString("#87ceeb")
+    const SkyBlue = Color3.FromHexString("#77B5FE")
     scene.clearColor = SkyBlue.toColor4(1)
     scene.fogEnabled = true
     scene.fogMode = BabylonScene.FOGMODE_EXP2
@@ -111,6 +112,7 @@ const onSceneReady = (scene: Scene) => {
             controls = updateControls(controls, deltaTime, pressedKeys)
 
             updateAirplane(airplane, deltaTime, controls)
+            updateUfo(ufo, deltaTime)
 
             camera.target = airplane.position
         }
