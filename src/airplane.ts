@@ -1,5 +1,30 @@
 import {Controls} from "./controls"
-import {AbstractMesh, Vector3} from "@babylonjs/core"
+import {AbstractMesh, AssetsManager, Vector3} from "@babylonjs/core"
+
+export function loadAirplane(
+    assetsManager: AssetsManager,
+    loaded: (mesh: AbstractMesh) => void,
+): void {
+    const airplaneTask = assetsManager.addMeshTask(
+        "f15 task",
+        ["F_15_C", "GLass", "TAnks"],
+        "assets/models/f15/",
+        "f15.gltf",
+    )
+
+    const initialAirplanePosition = new Vector3(0, 10, 10)
+    const initialAirplaneRotation = new Vector3(0, Math.PI * (7/8), 0)
+
+    airplaneTask.onSuccess = task => {
+        const airplane = task.loadedMeshes[0]
+        airplane.position = initialAirplanePosition
+        airplane.rotation = initialAirplaneRotation
+
+        loaded(airplane)
+    }
+
+    airplaneTask.onError = (task, error) => console.error(task, error)
+}
 
 // Ideally, we would take airplane position & rotation and return new position & rotation to make this a
 // pure, testable function.

@@ -15,8 +15,8 @@ import {Nullable} from "@babylonjs/core/types"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
-import {updateAirplane} from "./airplane"
-import {updateUfo} from "./ufo"
+import {loadAirplane, updateAirplane} from "./airplane"
+import {loadUfo, updateUfo} from "./ufo"
 
 const onSceneReady = (scene: Scene) => {
     let pressedKeys: PressedKeys = newPressedKeys
@@ -52,47 +52,22 @@ const onSceneReady = (scene: Scene) => {
     camera.attachControl(canvas, false)
 
     const assetsManager = new AssetsManager(scene)
-    const airplaneTask = assetsManager.addMeshTask(
-        "f15 task",
-        ["F_15_C", "GLass", "TAnks"],
-        "assets/models/f15/",
-        "f15.gltf",
-    )
-
-    const ufoTask = assetsManager.addMeshTask(
-        "ufo task",
-        ["UFO_body", "UFO_cockpit"],
-        "assets/models/ufo/",
-        "ufo.glb",
-    )
-
-    const initialAirplanePosition = new Vector3(0, 10, 10)
-    const initialAirplaneRotation = new Vector3(0, Math.PI * (7/8), 0)
 
     let airplane: Nullable<AbstractMesh> = null
-    airplaneTask.onSuccess = task => {
-        airplane = task.loadedMeshes[0]
-        airplane.position = initialAirplanePosition
-        airplane.rotation = initialAirplaneRotation
+    loadAirplane(assetsManager, (mesh) => {
+        airplane = mesh
 
         const followDirection = new Vector3(0, 0.2, -1)
         const FollowCameraDistance = 20
-        camera.position = airplane.position.add(airplane.getDirection(followDirection).scale(FollowCameraDistance))
-    }
-    airplaneTask.onError = (task, error) => console.error(task, error)
 
-    const initialUfoPosition = new Vector3(20, 20, 20)
-    const initialUfoRotation = new Vector3(0, 0, 0)
+        camera.position = mesh.position
+            .add(mesh.getDirection(followDirection).scale(FollowCameraDistance))
+    })
 
     let ufo: Nullable<AbstractMesh> = null
-    ufoTask.onSuccess = task => {
-        console.log(task)
-        ufo = task.loadedMeshes[0]
-        ufo.scaling = new Vector3(0.1, 0.1, 0.1)
-        ufo.position = initialUfoPosition
-        ufo.rotation = initialUfoRotation
-    }
-    ufoTask.onError = (task, error) => console.error(task, error)
+    loadUfo(assetsManager, (mesh) => {
+        ufo = mesh
+    })
 
     const edgeLength = 1000
     const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
