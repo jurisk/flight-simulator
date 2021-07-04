@@ -12,7 +12,7 @@ export function loadUfo(
         ["UFO_body", "UFO_cockpit"],
         "assets/models/ufo/",
         "ufo.glb",
-        new Vector3(20, 20, 20),
+        new Vector3(60, 40, 60),
         new Vector3(0, 0, 0),
         new Vector3(0.1, 0.1, 0.1),
         loaded,

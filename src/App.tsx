@@ -1,15 +1,15 @@
 import "./App.css"
-import { RecoilRoot } from "recoil"
+import {RecoilRoot} from "recoil"
 
 import React from "react"
 
 import "./App.css"
-import {FlightSimulator} from "./FlightSimulator"
+import {Game} from "./Game"
 
 export const App: React.FC = () => {
     return (
         <RecoilRoot>
-            <FlightSimulator/>
+            <Game/>
         </RecoilRoot>
     )
 }

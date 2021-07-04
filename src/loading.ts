@@ -24,7 +24,8 @@ export function loadMesh(
         mesh.position = initialPosition
         mesh.rotation = initialRotation
         mesh.scaling = initialScaling
-
+        mesh.receiveShadows = true
+        mesh.checkCollisions = true
         loaded(mesh)
     }
 

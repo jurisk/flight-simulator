@@ -1,5 +1,6 @@
 import {Color3} from "@babylonjs/core/Maths/math.color"
 import {
+    GroundMesh,
     HemisphericLight,
     MeshBuilder,
     PointLight,
@@ -23,7 +24,7 @@ export function fogSkyLight(scene: Scene): void {
     hemiLight.intensity = 0.25
 }
 
-export function loadMap(scene: Scene): void {
+export function loadMap(scene: Scene): GroundMesh {
     const edgeLength = 1000
     const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
         width: edgeLength,
@@ -35,4 +36,5 @@ export function loadMap(scene: Scene): void {
     const mapMaterial = new StandardMaterial("map-material", scene)
     mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
     map.material = mapMaterial
+    return map
 }
