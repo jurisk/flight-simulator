@@ -26,7 +26,7 @@ export const MainMenu = (): JSX.Element => {
         "Captain: Move 'ZIG'.",
         "Captain: For great justice.",
         "",
-        "Use ESDFWR to control plane"
+        "Use E and D for pitch, S and F for roll, W and R for rudder, Space to shoot cannon"
     ]
 
     return (

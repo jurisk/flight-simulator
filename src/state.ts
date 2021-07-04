@@ -3,7 +3,8 @@ import {atom} from "recoil"
 export enum State {
     MainMenu,
     Playing,
-    GameOver,
+    GameWon,
+    GameLost,
 }
 
 export const gameState = atom<State>({

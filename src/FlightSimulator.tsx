@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, ArcRotateCamera, SceneLoader, Mesh, AbstractMesh, StandardMaterial,
+    Vector3, Scene, ArcRotateCamera, SceneLoader, Mesh, AbstractMesh, StandardMaterial, Sound,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -22,10 +22,11 @@ window.CANNON = CANNON
 export const FlightSimulator = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
-    function gameOver() {
-        setState(State.GameOver)
+    function gameLost() {
+        setState(State.GameLost)
     }
 
+    // TODO: also be able to drop a few bombs which are slower, have area impact and can kill both the plane and the alien ship!
     const onSceneReady = async (scene: Scene) => {
         SceneLoader.ShowLoadingScreen = true // does not seem to do anything
 
@@ -62,14 +63,13 @@ export const FlightSimulator = (): JSX.Element => {
         const collisionAirplaneMesh = airplane.children[0] // .root didn't have vertices
         collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(collisionAirplaneMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
         collisionAirplaneMesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor, function(main) {
-            // TODO: This never seems to get triggered
-            console.log("boom");
-
             // TODO: explosion here
-            ((main.object as AbstractMesh).material as StandardMaterial).diffuseColor = new Color3(Math.random(), Math.random(), Math.random())
+            // TODO: This never seems to get triggered
+            console.log("boom", main)
 
             // TODO: unfortunately this crashes with "Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
-            gameOver()
+            // TODO: show explosion first, only then go to "game lost" screen
+            gameLost()
         })
 
         const followDirection = new Vector3(0, 0.2, -1)
@@ -78,8 +78,13 @@ export const FlightSimulator = (): JSX.Element => {
         camera.position = airplane.root.position
             .add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
 
+        // TODO: have multiple UFOs, and make game and as victory if you kill all of them or a loss if you run out of bullets and bombs
         const ufo = await loadUfo()
         // TODO: UFO also needs impostor for collisions
+
+        const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
+            { playbackRate: 1, volume: 0.1 },
+        )
 
         const createCannonBall = function (airplane: AbstractMesh) {
             const bullet = Mesh.CreateSphere("cannon-ball", 8, 0.1, scene)
@@ -106,24 +111,24 @@ export const FlightSimulator = (): JSX.Element => {
 
                 bullet.dispose()
             }
+
+            gunshot.play()
         }
 
         scene.registerBeforeRender(() => {
-            if (airplane && ufo) {
-                const deltaTime = scene.deltaTime
-                controls = updateControls(controls, deltaTime, pressedKeys)
+            const deltaTime = scene.deltaTime
+            controls = updateControls(controls, deltaTime, pressedKeys)
 
-                updateAirplane(airplane.root, deltaTime, controls)
-                updateUfo(ufo.root, deltaTime)
+            updateAirplane(airplane.root, deltaTime, controls)
+            updateUfo(ufo.root, deltaTime)
 
-                if (controls.fireCannons) {
-                    // Note - This is suboptimal because rate of fire depends on our framerate!
-                    createCannonBall(airplane.root)
-                    // TODO: have a lot but not infinite ammo
-                }
-
-                camera.target = airplane.root.position
+            if (controls.fireCannons) {
+                // Note - This is suboptimal because rate of fire depends on our framerate!
+                createCannonBall(airplane.root)
+                // TODO: have a lot but not infinite ammo
             }
+
+            camera.target = airplane.root.position
         })
 
         engine.runRenderLoop(() => scene.render())
