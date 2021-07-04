@@ -72,5 +72,7 @@ export function updateScene(
         const FollowCameraDistance = 20
         camera.position = airplane.position.add(airplane.getDirection(followDirection).scale(FollowCameraDistance))
         camera.target = airplane.position
+    } else {
+        console.log("No camera")
     }
 }

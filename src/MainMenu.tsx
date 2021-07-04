@@ -25,6 +25,8 @@ export const MainMenu = (): JSX.Element => {
         "Captain: You know what you doing.",
         "Captain: Move 'ZIG'.",
         "Captain: For great justice.",
+        "",
+        "Use ESDFWR to control plane"
     ]
 
     return (

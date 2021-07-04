@@ -1,10 +1,8 @@
 import {Controls} from "./controls"
 import {
     AbstractMesh,
-    ActionManager,
     ArcRotateCamera,
     AssetsManager,
-    ExecuteCodeAction,
     Scene,
     Vector3
 } from "@babylonjs/core"
@@ -15,7 +13,6 @@ export function loadAirplane(
     assetsManager: AssetsManager,
     camera: ArcRotateCamera,
     loaded: (mesh: AbstractMesh) => void,
-    gameOver: () => void,
 ): void {
     loadMesh(
         assetsManager,
@@ -23,32 +20,10 @@ export function loadAirplane(
         ["F_15_C", "GLass", "TAnks"],
         "assets/models/f15/",
         "f15.gltf",
-        new Vector3(30, 30, 30),
+        new Vector3(30, 60, 30),
         new Vector3(0, Math.PI * (7/8), 0),
         new Vector3(1, 1, 1),
-        (airplane) => {
-            airplane.actionManager = new ActionManager(scene)
-            airplane.actionManager.registerAction(
-                new ExecuteCodeAction(
-                    {
-                        trigger: ActionManager.OnIntersectionEnterTrigger,
-                        parameter: scene.getMeshByName("map"),
-                    },
-                    () => {
-                        console.log("collision")
-                        // TODO: unfortunately this crashes with "Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
-                        gameOver()
-                    },
-                ),
-            )
-            const followDirection = new Vector3(0, 0.2, -1)
-            const FollowCameraDistance = 20
-
-            camera.position = airplane.position
-                .add(airplane.getDirection(followDirection).scale(FollowCameraDistance))
-
-            loaded(airplane)
-        },
+        loaded,
     )
 }
 

@@ -1,5 +1,5 @@
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
-import {AbstractMesh, AssetsManager} from "@babylonjs/core"
+import {AbstractMesh, AssetsManager, VertexBuffer} from "@babylonjs/core"
 
 export function loadMesh(
     assetsManager: AssetsManager,
@@ -20,6 +20,7 @@ export function loadMesh(
     )
 
     task.onSuccess = task => {
+        console.log(task.loadedMeshes.map((x) => x.getVerticesData(VertexBuffer.PositionKind)))
         const mesh = task.loadedMeshes[0]
         mesh.position = initialPosition
         mesh.rotation = initialRotation
