@@ -62,6 +62,7 @@ export const FlightSimulator = (): JSX.Element => {
         const collisionAirplaneMesh = airplane.children[0] // .root didn't have vertices
         collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(collisionAirplaneMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
         collisionAirplaneMesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor, function(main) {
+            // TODO: This never seems to get triggered
             console.log("boom");
 
             // TODO: explosion here
