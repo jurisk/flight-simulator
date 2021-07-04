@@ -80,9 +80,27 @@ export const FlightSimulator = (): JSX.Element => {
         const ufo = await loadUfo()
 
         const createCannonBall = function (airplane: AbstractMesh) {
-            const ball = Mesh.CreateSphere("cannon-ball", 8, 1, scene)
-            ball.position.copyFrom(airplane.position)
-            ball.physicsImpostor = new PhysicsImpostor(ball, PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0, restitution: 0 })
+            const bullet = Mesh.CreateSphere("cannon-ball", 8, 0.1, scene)
+            const bulletMaterial = new StandardMaterial("cannon-ball-material", scene)
+            bulletMaterial.emissiveColor = Color3.Red()
+            bullet.material = bulletMaterial
+
+            bullet.position = airplane.getAbsolutePosition()
+            bullet.physicsImpostor = new PhysicsImpostor(bullet, PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0.5, restitution: 0.3 }, scene)
+
+            const dir = airplane.getDirection(new Vector3(0, 0, 1))
+            const power = 100
+            bullet.physicsImpostor.applyImpulse(dir.scale(power), airplane.getAbsolutePosition())
+
+            bullet.physicsImpostor.onCollideEvent = (e, t) => {
+                // TODO: if it is enemy ship then destroy it
+                // TODO: show explosion
+
+                if (bullet.physicsImpostor) {
+                    bullet.physicsImpostor.dispose()
+                }
+                bullet.dispose()
+            }
         }
 
         scene.registerBeforeRender(() => {
@@ -94,6 +112,7 @@ export const FlightSimulator = (): JSX.Element => {
                 updateUfo(ufo.root, deltaTime)
 
                 if (controls.fireCannons) {
+                    // Note - This is suboptimal because rate of fire depends on our framerate!
                     createCannonBall(airplane.root)
                 }
 
