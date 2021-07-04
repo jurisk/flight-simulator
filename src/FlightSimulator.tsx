@@ -41,6 +41,7 @@ export const FlightSimulator = (): JSX.Element => {
             roll: 0,
             rudder: 0,
             pitch: 0,
+            fireCannons: false,
         }
 
         scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
@@ -59,7 +60,7 @@ export const FlightSimulator = (): JSX.Element => {
         const airplane = await loadAirplane()
 
         const collisionAirplaneMesh = airplane.children[0] // .root didn't have vertices
-        collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(collisionAirplaneMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 })
+        collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(collisionAirplaneMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
         collisionAirplaneMesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor, function(main) {
             console.log("boom");
 
@@ -78,20 +79,11 @@ export const FlightSimulator = (): JSX.Element => {
 
         const ufo = await loadUfo()
 
-        // TODO: just a physics test, remove later
-        const createBall = function () {
-            const ball = Mesh.CreateSphere("s", 8, 8, scene)
-            ball.position.y = 500
-            ball.position.x = (Math.random() * 100) * ((Math.random() < 0.5) ? -1 : 1)
-            ball.position.z = (Math.random() * 100) * ((Math.random() < 0.5) ? -1 : 1)
+        const createCannonBall = function (airplane: AbstractMesh) {
+            const ball = Mesh.CreateSphere("cannon-ball", 8, 1, scene)
+            ball.position.copyFrom(airplane.position)
             ball.physicsImpostor = new PhysicsImpostor(ball, PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0, restitution: 0 })
         }
-
-        createBall()
-        createBall()
-        createBall()
-        createBall()
-        createBall()
 
         scene.registerBeforeRender(() => {
             if (airplane && ufo) {
@@ -100,6 +92,10 @@ export const FlightSimulator = (): JSX.Element => {
 
                 updateAirplane(airplane.root, deltaTime, controls)
                 updateUfo(ufo.root, deltaTime)
+
+                if (controls.fireCannons) {
+                    createCannonBall(airplane.root)
+                }
 
                 camera.target = airplane.root.position
             }

@@ -5,16 +5,18 @@ export interface Controls {
     roll: number,
     rudder: number,
     pitch: number,
+    fireCannons: boolean,
 }
 
-const LeftRoll = "s"
-const RightRoll = "f"
-const LeftRudder = "w"
-const RightRudder = "r"
-const PitchUp = "d"
-const PitchDown = "e"
-const ThrottleUp = "a"
-const ThrottleDown = "z"
+const LeftRoll = "KeyS"
+const RightRoll = "KeyF"
+const LeftRudder = "KeyW"
+const RightRudder = "KeyR"
+const PitchUp = "KeyD"
+const PitchDown = "KeyE"
+const ThrottleUp = "KeyA"
+const ThrottleDown = "KeyZ"
+const FireCannonsKeyboard = "Space"
 
 export function updateControls(controls: Controls, deltaTime: number, pressedKeys: PressedKeys): Controls {
     const control = (name: string): number => pressedKeys.contains(name) ? deltaTime : 0
@@ -41,10 +43,13 @@ export function updateControls(controls: Controls, deltaTime: number, pressedKey
     const MaxThrottle = 1
     const newThrottle = clamp(controls.throttle, throttlePos * 0.001, MinThrottle, MaxThrottle)
 
+    const newTrigger = pressedKeys.contains(FireCannonsKeyboard)
+
     return {
         throttle: newThrottle,
         rudder: newRudder,
         pitch: newPitch,
         roll: newRoll,
+        fireCannons: newTrigger,
     }
 }
