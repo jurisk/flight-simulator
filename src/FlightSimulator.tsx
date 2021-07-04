@@ -80,7 +80,8 @@ export const FlightSimulator = (): JSX.Element => {
 
         // TODO: have multiple UFOs, and make game and as victory if you kill all of them or a loss if you run out of bullets and bombs
         const ufo = await loadUfo()
-        // TODO: UFO also needs impostor for collisions
+        const collisionUfoMesh = airplane.children[0] // .root didn't have vertices
+        collisionUfoMesh.physicsImpostor = new PhysicsImpostor(collisionUfoMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
             { playbackRate: 1, volume: 0.1 },
@@ -100,10 +101,16 @@ export const FlightSimulator = (): JSX.Element => {
             bullet.physicsImpostor.applyImpulse(dir.scale(power), airplane.getAbsolutePosition())
 
             bullet.physicsImpostor.onCollideEvent = (object, target) => {
-                // TODO: if it is enemy ship then destroy it
-                // TODO: show explosion
+                if (target === ground.physicsImpostor) {
+                    // TODO: show explosion
+                    console.log("collision with ground", ground)
+                }
 
-                console.log("bullet collision with something", object, target)
+                // TODO: this never seems to trigger
+                if (target === collisionUfoMesh.physicsImpostor) {
+                    // TODO: show explosion and destroy enemy ship
+                    console.log("collision with ufo", collisionUfoMesh)
+                }
 
                 if (bullet.physicsImpostor) {
                     bullet.physicsImpostor.dispose()
