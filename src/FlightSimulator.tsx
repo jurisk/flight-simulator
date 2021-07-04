@@ -78,6 +78,7 @@ export const FlightSimulator = (): JSX.Element => {
             .add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
 
         const ufo = await loadUfo()
+        // TODO: UFO also needs impostor for collisions
 
         const createCannonBall = function (airplane: AbstractMesh) {
             const bullet = Mesh.CreateSphere("cannon-ball", 8, 0.1, scene)
@@ -92,13 +93,16 @@ export const FlightSimulator = (): JSX.Element => {
             const power = 100
             bullet.physicsImpostor.applyImpulse(dir.scale(power), airplane.getAbsolutePosition())
 
-            bullet.physicsImpostor.onCollideEvent = (e, t) => {
+            bullet.physicsImpostor.onCollideEvent = (object, target) => {
                 // TODO: if it is enemy ship then destroy it
                 // TODO: show explosion
+
+                console.log("bullet collision with something", object, target)
 
                 if (bullet.physicsImpostor) {
                     bullet.physicsImpostor.dispose()
                 }
+
                 bullet.dispose()
             }
         }
@@ -114,6 +118,7 @@ export const FlightSimulator = (): JSX.Element => {
                 if (controls.fireCannons) {
                     // Note - This is suboptimal because rate of fire depends on our framerate!
                     createCannonBall(airplane.root)
+                    // TODO: have a lot but not infinite ammo
                 }
 
                 camera.target = airplane.root.position
