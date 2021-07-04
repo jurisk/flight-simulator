@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, ArcRotateCamera, SceneLoader, Mesh, AbstractMesh, StandardMaterial, Sound,
+    Vector3, Scene, SceneLoader, Mesh, AbstractMesh, StandardMaterial, Sound, FreeCamera,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -52,7 +52,7 @@ export const FlightSimulator = (): JSX.Element => {
 
         fogSkyLight(scene)
 
-        const camera = new ArcRotateCamera("arc-rotate-camera", 0, 0.8, 100, Vector3.Zero(), scene)
+        const camera = new FreeCamera("free-camera", Vector3.Zero(), scene)
         camera.attachControl(canvas, false)
 
         const ground = await loadMap(scene)
@@ -61,7 +61,12 @@ export const FlightSimulator = (): JSX.Element => {
         const airplane = await loadAirplane()
 
         const collisionAirplaneMesh = airplane.children[0] // .root didn't have vertices
-        collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(collisionAirplaneMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
+        collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(
+            collisionAirplaneMesh,
+            PhysicsImpostor.MeshImpostor,
+            { mass: 0, friction: 0, restitution: 0 },
+            scene,
+        )
         collisionAirplaneMesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor, function(main) {
             // TODO: explosion here
             // TODO: This never seems to get triggered
@@ -72,15 +77,10 @@ export const FlightSimulator = (): JSX.Element => {
             gameLost()
         })
 
-        const followDirection = new Vector3(0, 0.2, -1)
-        const FollowCameraDistance = 20
-
-        camera.position = airplane.root.position
-            .add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
-
         // TODO: have multiple UFOs, and make game and as victory if you kill all of them or a loss if you run out of bullets and bombs
         const ufo = await loadUfo()
-        const collisionUfoMesh = airplane.children[0] // .root didn't have vertices
+        const collisionUfoMesh = ufo.children[0] // .root didn't have vertices
+        console.log(collisionUfoMesh)
         collisionUfoMesh.physicsImpostor = new PhysicsImpostor(collisionUfoMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
@@ -94,7 +94,12 @@ export const FlightSimulator = (): JSX.Element => {
             bullet.material = bulletMaterial
 
             bullet.position = airplane.getAbsolutePosition()
-            bullet.physicsImpostor = new PhysicsImpostor(bullet, PhysicsImpostor.SphereImpostor, { mass: 1, friction: 0.5, restitution: 0.3 }, scene)
+            bullet.physicsImpostor = new PhysicsImpostor(
+                bullet,
+                PhysicsImpostor.SphereImpostor,
+                { mass: 1, friction: 0.5, restitution: 0.3 },
+                scene,
+            )
 
             const dir = airplane.getDirection(new Vector3(0, 0, 1))
             const power = 100
@@ -135,6 +140,9 @@ export const FlightSimulator = (): JSX.Element => {
                 // TODO: have a lot but not infinite ammo
             }
 
+            const followDirection = new Vector3(0, 0.2, -1)
+            const FollowCameraDistance = 20
+            camera.position = airplane.root.position.add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
             camera.target = airplane.root.position
         })
 
