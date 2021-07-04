@@ -1,31 +1,19 @@
 import {Controls} from "./controls"
 import {
     AbstractMesh,
-    ArcRotateCamera,
-    AssetsManager,
-    Scene,
     Vector3
 } from "@babylonjs/core"
-import {loadMesh} from "./loading"
+import {loadMesh, MeshSet} from "./loading"
 
-export function loadAirplane(
-    scene: Scene,
-    assetsManager: AssetsManager,
-    camera: ArcRotateCamera,
-    loaded: (mesh: AbstractMesh) => void,
-): void {
-    loadMesh(
-        assetsManager,
-        "f15 task",
-        ["F_15_C", "GLass", "TAnks"],
-        "assets/models/f15/",
-        "f15.gltf",
-        new Vector3(30, 60, 30),
-        new Vector3(0, Math.PI * (7/8), 0),
-        new Vector3(1, 1, 1),
-        loaded,
-    )
-}
+export const loadAirplane = (): Promise<MeshSet> => loadMesh(
+    "f15 task",
+    ["F_15_C", "GLass", "TAnks"],
+    "assets/models/f15/",
+    "f15.gltf",
+    new Vector3(30, 60, 30),
+    new Vector3(0, Math.PI * (7 / 8), 0),
+    new Vector3(1, 1, 1),
+)
 
 // Ideally, we would take airplane position & rotation and return new position & rotation to make this a
 // pure, testable function.

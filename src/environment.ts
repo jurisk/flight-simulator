@@ -24,19 +24,20 @@ export function fogSkyLight(scene: Scene): void {
     hemiLight.intensity = 0.25
 }
 
-export function loadMap(scene: Scene, loaded: (mesh: GroundMesh) => void): GroundMesh {
-    const edgeLength = 1000
-    const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
-        width: edgeLength,
-        height: edgeLength,
-        subdivisions: 256,
-        minHeight: 0,
-        maxHeight: 50,
-        updatable: false,
-        onReady: (x) => loaded(x)
-    }, scene)
-    const mapMaterial = new StandardMaterial("map-material", scene)
-    mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
-    map.material = mapMaterial
-    return map
+export function loadMap(scene: Scene): Promise<GroundMesh> {
+    return new Promise<GroundMesh>((resolve) => {
+        const edgeLength = 1000
+        const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
+            width: edgeLength,
+            height: edgeLength,
+            subdivisions: 256,
+            minHeight: 0,
+            maxHeight: 50,
+            updatable: false,
+            onReady: (x) => resolve(x)
+        }, scene)
+        const mapMaterial = new StandardMaterial("map-material", scene)
+        mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
+        map.material = mapMaterial
+    })
 }

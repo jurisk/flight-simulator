@@ -1,8 +1,12 @@
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
-import {AbstractMesh, AssetsManager, VertexBuffer} from "@babylonjs/core"
+import {AbstractMesh, SceneLoader} from "@babylonjs/core"
 
-export function loadMesh(
-    assetsManager: AssetsManager,
+export interface MeshSet {
+    root: AbstractMesh,
+    children: readonly AbstractMesh[],
+}
+
+export async function loadMesh(
     taskName: string,
     meshNames: readonly string[],
     rootUrl: string,
@@ -10,25 +14,21 @@ export function loadMesh(
     initialPosition: Vector3,
     initialRotation: Vector3,
     initialScaling: Vector3,
-    loaded: (mesh: AbstractMesh) => void,
-): void {
-    const task = assetsManager.addMeshTask(
-        taskName,
-        meshNames,
-        rootUrl,
-        sceneFileName,
-    )
+): Promise<MeshSet> {
+    SceneLoader.ShowLoadingScreen = true
+    const result = await SceneLoader.ImportMeshAsync(null, rootUrl, sceneFileName)
+    const root = result.meshes[0]
+    const children = root.getChildMeshes()
+    root.position = initialPosition
+    root.rotation = initialRotation
+    root.scaling = initialScaling
 
-    task.onSuccess = task => {
-        console.log(task.loadedMeshes.map((x) => x.getVerticesData(VertexBuffer.PositionKind)))
-        const mesh = task.loadedMeshes[0]
-        mesh.position = initialPosition
-        mesh.rotation = initialRotation
-        mesh.scaling = initialScaling
-        mesh.receiveShadows = true
-        mesh.checkCollisions = true
-        loaded(mesh)
+    children.forEach((x) => {
+        x.receiveShadows = true
+        x.checkCollisions = true
+    })
+    return {
+        root: root,
+        children: children
     }
-
-    task.onError = (task, error) => console.error(task, error)
 }
