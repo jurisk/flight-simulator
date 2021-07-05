@@ -9,7 +9,7 @@ import "@babylonjs/inspector"
 import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {loadAirplane, updateAirplane} from "./airplane"
-import {loadUfo, updateUfo} from "./ufo"
+import {loadUfo} from "./ufo"
 import {fogSkyLight, loadMap} from "./environment"
 import {useSetRecoilState} from "recoil"
 import {gameState, State} from "./state"
@@ -78,10 +78,7 @@ export const FlightSimulator = (): JSX.Element => {
         })
 
         // TODO: have multiple UFOs, and make game and as victory if you kill all of them or a loss if you run out of bullets and bombs
-        const ufo = await loadUfo()
-        const collisionUfoMesh = ufo.children[0] // .root didn't have vertices
-        console.log(collisionUfoMesh)
-        collisionUfoMesh.physicsImpostor = new PhysicsImpostor(collisionUfoMesh, PhysicsImpostor.MeshImpostor, { mass: 0, friction: 0, restitution: 0 }, scene)
+        const ufo = await loadUfo(scene)
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
             { playbackRate: 1, volume: 0.1 },
@@ -108,14 +105,16 @@ export const FlightSimulator = (): JSX.Element => {
             bullet.physicsImpostor.onCollideEvent = (object, target) => {
                 if (target === ground.physicsImpostor) {
                     // TODO: show explosion
-                    console.log("collision with ground", ground)
+                    // console.log("collision with ground", ground)
+                } else {
+                    console.log(object, target)
                 }
 
                 // TODO: this never seems to trigger
-                if (target === collisionUfoMesh.physicsImpostor) {
-                    // TODO: show explosion and destroy enemy ship
-                    console.log("collision with ufo", collisionUfoMesh)
-                }
+                // if (target === collisionUfoMesh.physicsImpostor) {
+                // TODO: show explosion and destroy enemy ship
+                //     console.log("collision with ufo", collisionUfoMesh)
+                // }
 
                 if (bullet.physicsImpostor) {
                     bullet.physicsImpostor.dispose()
@@ -132,7 +131,7 @@ export const FlightSimulator = (): JSX.Element => {
             controls = updateControls(controls, deltaTime, pressedKeys)
 
             updateAirplane(airplane.root, deltaTime, controls)
-            updateUfo(ufo.root, deltaTime)
+            ufo.update(deltaTime)
 
             if (controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!

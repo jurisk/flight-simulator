@@ -10,7 +10,7 @@ export const loadAirplane = (): Promise<MeshSet> => loadMesh(
     ["F_15_C", "GLass", "TAnks"],
     "assets/models/f15/",
     "f15.gltf",
-    new Vector3(30, 60, 30),
+    new Vector3(120, 60, 200),
     new Vector3(0, Math.PI * (7 / 8), 0),
     new Vector3(1, 1, 1),
 )

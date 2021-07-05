@@ -21,9 +21,9 @@ export async function loadMesh(
     const children = root.getChildMeshes()
     root.position = initialPosition
     root.rotation = initialRotation
-    root.scaling = initialScaling
+    root.scaling = initialScaling;
 
-    children.forEach((x) => {
+    [root, ...children].forEach((x) => {
         x.receiveShadows = true
         x.checkCollisions = true
     })
