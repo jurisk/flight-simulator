@@ -106,6 +106,8 @@ export const FlightSimulator = (): JSX.Element => {
                 if (target === ground.physicsImpostor) {
                     // TODO: show explosion
                     // console.log("collision with ground", ground)
+                } else if (target === ufo.sphere.physicsImpostor) {
+                    ufo.bulletHit()
                 } else {
                     console.log(object, target)
                 }
