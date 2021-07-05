@@ -1,4 +1,9 @@
-import {AbstractMesh, Scene, SphereBuilder, StandardMaterial} from "@babylonjs/core"
+import {
+    Scene,
+    SphereBuilder,
+    StandardMaterial,
+    TransformNode
+} from "@babylonjs/core"
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
 import {loadMesh, MeshSet} from "./loading"
 import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
@@ -6,67 +11,100 @@ import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {Color3} from "@babylonjs/core/Maths/math.color"
 
 class Ufo {
-    meshSet: MeshSet
+    meshSet: TransformNode
     sphere: Mesh
-    hitpoints: number
+    hitPoints: number
     destructionStarted: number | null
 
-    constructor(_meshSet: MeshSet, _sphere: Mesh) {
+    constructor(_meshSet: TransformNode, _sphere: Mesh) {
         this.meshSet = _meshSet
         this.sphere = _sphere
-        this.hitpoints = 5
+        this.hitPoints = 5
         this.destructionStarted = null
     }
 
     bulletHit() {
-        this.hitpoints = this.hitpoints - 1
+        this.hitPoints = this.hitPoints - 1
+    }
+
+    destructionFinished(): boolean {
+        if (this.destructionStarted) {
+            return (new Date().valueOf() + 1000) > this.destructionStarted
+        } else {
+            return false
+        }
     }
 
     update(deltaTime: number) {
         if (this.destructionStarted) {
+            const material = this.sphere.material as StandardMaterial
+            const newColor = new Color3(material.emissiveColor.r, material.emissiveColor.g * 0.99, material.emissiveColor.b * 0.99)
+
+            material.emissiveColor = newColor
+            material.specularColor = newColor
+            material.diffuseColor = newColor
             this.sphere.scaling = this.sphere.scaling.multiplyByFloats(0.99, 0.99, 0.99)
         } else {
-            if (this.hitpoints <= 0) {
+            if (this.hitPoints <= 0) {
                 this.destructionStarted = new Date().valueOf()
-                this.sphere.isVisible = true;
-                ([this.meshSet.root, ...this.meshSet.children])
-                    .forEach((x: AbstractMesh) => {x.isVisible = false})
+                this.sphere.isVisible = true
+                this.meshSet.dispose()
             }
         }
 
-        this.meshSet.root.position = this.sphere.position
+        this.meshSet.position = this.sphere.position
     }
 }
 
-export const loadUfo = (scene: Scene): Promise<Ufo> => {
-    const initialPosition = new Vector3(60, 40, 60)
+export async function createUfos(scene: Scene): Promise<Ufo[]> {
+    const meshSet = await loadMeshSet();
+    [meshSet.root, ...meshSet.children].forEach((x) => { x.isVisible = false })
 
-    return loadMesh(
+    return [0, 10, 20, 30, 40].map((n) =>
+        createUfo(n, scene, meshSet)
+    )
+}
+
+async function loadMeshSet() {
+    return await loadMesh(
         "ufo task",
         ["UFO_body", "UFO_cockpit"],
         "assets/models/ufo/",
         "ufo.glb",
-        initialPosition,
+        new Vector3(0, 0, 0),
         new Vector3(0, 0, 0),
         new Vector3(0.1, 0.1, 0.1),
-    ).then((x) => {
-        // this is a sad hack because we could not get MeshImpostor to work
-        const ufoBall = SphereBuilder.CreateSphere("ufo-sphere", {diameter: 10}, scene)
-        const ufoBallMaterial = new StandardMaterial("ufo-ball-material", scene)
-        ufoBallMaterial.emissiveColor = Color3.Yellow()
-        ufoBallMaterial.specularColor = Color3.Yellow()
-        ufoBall.material = ufoBallMaterial
-        ufoBall.position = initialPosition
-        ufoBall.isVisible = false
-        ufoBall.checkCollisions = true
+    )
+}
 
-        ufoBall.physicsImpostor = new PhysicsImpostor(
-            ufoBall,
-            PhysicsImpostor.SphereImpostor,
-            { mass: 0 },
-            scene,
-        )
+function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
+    const initialPosition = new Vector3(60 + index , 40, 60 + index)
 
-        return new Ufo(x, ufoBall)
-    })
+    // .createInstance was a mess, it created some weird hierarchy
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const root = meshSet.root.instantiateHierarchy()!
+    console.log(root)
+
+    root.position = initialPosition
+
+    // this is a sad hack because we could not get MeshImpostor to work
+    const ufoBall = SphereBuilder.CreateSphere("ufo-sphere", {diameter: 10}, scene)
+    const ufoBallMaterial = new StandardMaterial("ufo-ball-material", scene)
+    const color = Color3.Yellow()
+    ufoBallMaterial.diffuseColor = color
+    ufoBallMaterial.emissiveColor = color
+    ufoBallMaterial.specularColor = color
+    ufoBall.material = ufoBallMaterial
+    ufoBall.position = initialPosition
+    ufoBall.isVisible = false
+    ufoBall.checkCollisions = true
+
+    ufoBall.physicsImpostor = new PhysicsImpostor(
+        ufoBall,
+        PhysicsImpostor.SphereImpostor,
+        { mass: 0 },
+        scene,
+    )
+
+    return new Ufo(root, ufoBall)
 }

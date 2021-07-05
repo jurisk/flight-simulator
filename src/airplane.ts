@@ -4,8 +4,9 @@ import {
     Vector3
 } from "@babylonjs/core"
 import {loadMesh, MeshSet} from "./loading"
+import {Mesh} from "@babylonjs/core/Meshes/mesh"
 
-export const loadAirplane = (): Promise<MeshSet> => loadMesh(
+export const loadAirplane = (): Promise<MeshSet<Mesh>> => loadMesh(
     "f15 task",
     ["F_15_C", "GLass", "TAnks"],
     "assets/models/f15/",

@@ -9,7 +9,7 @@ import "@babylonjs/inspector"
 import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {loadAirplane, updateAirplane} from "./airplane"
-import {loadUfo} from "./ufo"
+import {createUfos} from "./ufo"
 import {fogSkyLight, loadMap} from "./environment"
 import {useSetRecoilState} from "recoil"
 import {gameState, State} from "./state"
@@ -22,8 +22,13 @@ window.CANNON = CANNON
 export const FlightSimulator = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
-    function gameLost() {
+    // TODO: unfortunately this crashes with "Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
+    function gameLost(): void {
         setState(State.GameLost)
+    }
+
+    const gameWon = () => {
+        setState(State.GameWon)
     }
 
     // TODO: also be able to drop a few bombs which are slower, have area impact and can kill both the plane and the alien ship!
@@ -72,13 +77,11 @@ export const FlightSimulator = (): JSX.Element => {
             // TODO: This never seems to get triggered
             console.log("boom", main)
 
-            // TODO: unfortunately this crashes with "Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
             // TODO: show explosion first, only then go to "game lost" screen
             gameLost()
         })
 
-        // TODO: have multiple UFOs, and make game and as victory if you kill all of them or a loss if you run out of bullets and bombs
-        const ufo = await loadUfo(scene)
+        const ufos = await createUfos(scene)
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
             { playbackRate: 1, volume: 0.1 },
@@ -106,9 +109,13 @@ export const FlightSimulator = (): JSX.Element => {
                 if (target === ground.physicsImpostor) {
                     // TODO: show explosion
                     // console.log("collision with ground", ground)
-                } else if (target === ufo.sphere.physicsImpostor) {
-                    ufo.bulletHit()
                 } else {
+                    ufos.forEach((ufo) => {
+                        if (target === ufo.sphere.physicsImpostor) {
+                            ufo.bulletHit()
+                        }
+                    })
+
                     console.log(object, target)
                 }
 
@@ -129,11 +136,19 @@ export const FlightSimulator = (): JSX.Element => {
         }
 
         scene.registerBeforeRender(() => {
+            if (ufos.every((x) => x.destructionFinished())) {
+                gameWon()
+                return
+            }
+
             const deltaTime = scene.deltaTime
             controls = updateControls(controls, deltaTime, pressedKeys)
 
             updateAirplane(airplane.root, deltaTime, controls)
-            ufo.update(deltaTime)
+
+            ufos.forEach((ufo) =>
+                ufo.update(deltaTime)
+            )
 
             if (controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!
