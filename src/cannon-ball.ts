@@ -23,7 +23,7 @@ export function createCannonBall(airplane: AbstractMesh, ufos: readonly Ufo[], g
     )
 
     const dir = airplane.getDirection(new Vector3(0, 0, 1))
-    const power = 100
+    const power = 200
     bullet.physicsImpostor.applyImpulse(dir.scale(power), airplane.getAbsolutePosition())
 
     bullet.physicsImpostor.onCollideEvent = (object, target) => {
