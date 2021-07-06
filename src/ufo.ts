@@ -15,7 +15,7 @@ function r(): number {
     return (Math.random() - 0.5) * 2
 }
 
-class Ufo {
+export class Ufo {
     meshSet: TransformNode
     sphere: Mesh
     hitPoints: number
@@ -28,7 +28,7 @@ class Ufo {
         this.destructionStarted = null
     }
 
-    bulletHit() {
+    bulletHit(): void {
         this.hitPoints = this.hitPoints - 1
     }
 
@@ -40,7 +40,7 @@ class Ufo {
         }
     }
 
-    update(deltaTime: number) {
+    update(deltaTime: number): void {
         if (this.destructionStarted) {
             const material = this.sphere.material as StandardMaterial
             const newColor = new Color3(material.emissiveColor.r, material.emissiveColor.g * 0.99, material.emissiveColor.b * 0.99)
