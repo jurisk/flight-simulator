@@ -24,12 +24,15 @@ export function fogSkyLight(scene: Scene): void {
     hemiLight.intensity = 0.25
 }
 
+export const EdgeLength = 1000
+export const MaxCoordinate = EdgeLength / 2
+export const MinCoordinate = -MaxCoordinate
+
 export function loadMap(scene: Scene): Promise<GroundMesh> {
     return new Promise<GroundMesh>((resolve) => {
-        const edgeLength = 1000
         const map = MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
-            width: edgeLength,
-            height: edgeLength,
+            width: EdgeLength,
+            height: EdgeLength,
             subdivisions: 256,
             minHeight: 0,
             maxHeight: 50,

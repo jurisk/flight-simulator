@@ -2,13 +2,18 @@ import {
     Scene,
     SphereBuilder,
     StandardMaterial,
-    TransformNode
+    TransformNode,
 } from "@babylonjs/core"
 import {Vector3} from "@babylonjs/core/Maths/math.vector"
 import {loadMesh, MeshSet} from "./loading"
 import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {Color3} from "@babylonjs/core/Maths/math.color"
+import {MaxCoordinate, MinCoordinate} from "./environment"
+
+function r(): number {
+    return (Math.random() - 0.5) * 2
+}
 
 class Ufo {
     meshSet: TransformNode
@@ -45,10 +50,32 @@ class Ufo {
             material.diffuseColor = newColor
             this.sphere.scaling = this.sphere.scaling.multiplyByFloats(0.99, 0.99, 0.99)
         } else {
-            if (this.hitPoints <= 0) {
+            if (this.hitPoints <= 0) { // we just got killed
                 this.destructionStarted = new Date().valueOf()
                 this.sphere.isVisible = true
                 this.meshSet.dispose()
+            } else {
+                if (this.sphere.position.y < 50) {
+                    this.sphere.applyImpulse(new Vector3(0, Math.random() * 50, 0).scale(deltaTime), this.sphere.position)
+                }
+
+                if (this.sphere.position.x < MinCoordinate * 0.8) {
+                    this.sphere.applyImpulse(new Vector3(10, 0, 0).scale(deltaTime), this.sphere.position)
+                }
+
+                if (this.sphere.position.x > MaxCoordinate * 0.8) {
+                    this.sphere.applyImpulse(new Vector3(-10, 0, 0).scale(deltaTime), this.sphere.position)
+                }
+
+                if (this.sphere.position.z < MinCoordinate * 0.8) {
+                    this.sphere.applyImpulse(new Vector3(0, 0, 10).scale(deltaTime), this.sphere.position)
+                }
+
+                if (this.sphere.position.z > MaxCoordinate * 0.8) {
+                    this.sphere.applyImpulse(new Vector3(0, 0, -10).scale(deltaTime), this.sphere.position)
+                }
+
+                this.sphere.applyImpulse(new Vector3(r() * 10, 0, r() * 10).scale(deltaTime), this.sphere.position)
             }
         }
 
@@ -78,7 +105,8 @@ async function loadMeshSet() {
 }
 
 function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
-    const initialPosition = new Vector3(60 + index , 40, 60 + index)
+    const x = 60 + index
+    const initialPosition = new Vector3(x, 100, 60 + index)
 
     // .createInstance was a mess, it created some weird hierarchy
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -102,7 +130,7 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
     ufoBall.physicsImpostor = new PhysicsImpostor(
         ufoBall,
         PhysicsImpostor.SphereImpostor,
-        { mass: 0 },
+        { mass: 1000 },
         scene,
     )
 
