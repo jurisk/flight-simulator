@@ -88,7 +88,7 @@ export async function createUfos(scene: Scene): Promise<Ufo[]> {
     const meshSet = await loadMeshSet();
     [meshSet.root, ...meshSet.children].forEach((x) => { x.isVisible = false })
 
-    return [0, 10, 20, 30, 40].map((n) =>
+    return [0, 1, 2, 3, 4].map((n) =>
         createUfo(n, scene, meshSet)
     )
 }

@@ -10,10 +10,15 @@ export const GameLost = (): JSX.Element => {
             <h1>Defeat</h1>
 
             <div>
-                You have failed in your mission and aliens have taken over your flat world. Sad!
+                You have failed in your mission and aliens have taken over your world!
+
+                Sad!
+
+                CATS: Ha ha ha ha!
+                CATS: All your base are belong to us!!!
             </div>
 
-            <button onClick={() => setState(State.Playing)}>Play Again</button>
+            <button onClick={() => setState(State.MainMenu)}>Main Menu</button>
         </div>
     )
 }

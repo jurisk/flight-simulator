@@ -22,7 +22,6 @@ window.CANNON = CANNON
 export const FlightSimulator = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
-    // TODO: unfortunately this crashes with "Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node."
     function gameLost(): void {
         setState(State.GameLost)
     }
@@ -118,10 +117,14 @@ export const FlightSimulator = (): JSX.Element => {
     }
 
     return (
-        <SceneComponent
-            antialias={true}
-            onSceneReady={onSceneReady}
-            id='canvas'
-        />
+        <div>
+            {/* Without this `div` it crashes with "Uncaught DOMException: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node." */}
+
+            <SceneComponent
+                antialias={true}
+                onSceneReady={onSceneReady}
+                id='canvas'
+            />
+        </div>
     )
 }

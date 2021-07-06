@@ -12,10 +12,10 @@ export const GameWon = (): JSX.Element => {
             <div>
                 Great success!!!
 
-                You have destroyed the alien invasion force end defended your flat world!
+                You have destroyed the alien invasion force end defended your world!
             </div>
 
-            <button onClick={() => setState(State.Playing)}>Play Again</button>
+            <button onClick={() => setState(State.MainMenu)}>Main Menu</button>
         </div>
     )
 }
