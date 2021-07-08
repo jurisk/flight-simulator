@@ -113,7 +113,6 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
     // .createInstance was a mess, it created some weird hierarchy
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const root = meshSet.root.instantiateHierarchy()!
-    console.log(root)
 
     root.position = initialPosition
 

@@ -58,27 +58,20 @@ export const FlightSimulator = (): JSX.Element => {
 
         const camera = new FreeCamera("free-camera", Vector3.Zero(), scene)
         camera.attachControl(canvas, false)
+        const canvasElement = document.getElementById("canvas")
+        if (canvasElement) { // TODO: this doesn't really work, focus is not really gained
+            canvasElement.focus()
+            canvasElement.onblur = () => {
+                canvasElement.focus()
+            }
+        } else {
+            console.log("No canvas")
+        }
 
         const ground = await loadMap(scene)
         ground.physicsImpostor = new PhysicsImpostor(ground, PhysicsImpostor.HeightmapImpostor, { mass: 0 })
 
         const airplane = await loadAirplane()
-
-        const collisionAirplaneMesh = airplane.children[0] // .root didn't have vertices
-        collisionAirplaneMesh.physicsImpostor = new PhysicsImpostor(
-            collisionAirplaneMesh,
-            PhysicsImpostor.MeshImpostor,
-            { mass: 0, friction: 0, restitution: 0 },
-            scene,
-        )
-        collisionAirplaneMesh.physicsImpostor.registerOnPhysicsCollide(ground.physicsImpostor, function(main) {
-            // TODO: explosion here
-            // TODO: This never seems to get triggered
-            console.log("boom", main)
-
-            // TODO: show explosion first, only then go to "game lost" screen
-            gameLost()
-        })
 
         const ufos = await createUfos(scene)
 
@@ -88,7 +81,16 @@ export const FlightSimulator = (): JSX.Element => {
 
         scene.registerBeforeRender(() => {
             if (ufos.every((x) => x.destructionFinished())) {
+                // wait a bit, only then go to "game won" screen
                 gameWon()
+                return
+            }
+
+            // TODO: None of these two approaches actually worked, you can collide with mountains
+            // if (ground.intersectsMesh(airplane.children[0], false, true)) {
+            if (airplane.root.position.y < ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)) {
+                // TODO: show explosion first, only then go to "game lost" screen
+                gameLost()
                 return
             }
 

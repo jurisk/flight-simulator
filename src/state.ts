@@ -9,5 +9,5 @@ export enum State {
 
 export const gameState = atom<State>({
     key: "gameState",
-    default: State.MainMenu,
+    default: State.Playing,
 })
