@@ -10,7 +10,7 @@ import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {loadAirplane, updateAirplane} from "./airplane"
 import {createUfos} from "./ufo"
-import {fogSkyLight, loadMap} from "./environment"
+import {fogSkyLight, getHeightAtOctreeGroundCoordinates, loadMap} from "./environment"
 import {useSetRecoilState} from "recoil"
 import {gameState, State} from "./state"
 import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
@@ -69,6 +69,8 @@ export const FlightSimulator = (): JSX.Element => {
         }
 
         const ground = await loadMap(scene)
+        // ground.optimize(128)
+        ground.isPickable = true
         ground.physicsImpostor = new PhysicsImpostor(ground, PhysicsImpostor.HeightmapImpostor, { mass: 0 })
 
         const airplane = await loadAirplane()
@@ -86,9 +88,13 @@ export const FlightSimulator = (): JSX.Element => {
                 return
             }
 
-            // TODO: None of these two approaches actually worked, you can collide with mountains
+            // TODO: None of these two approaches actually worked, you can fly through with mountains
             // if (ground.intersectsMesh(airplane.children[0], false, true)) {
-            if (airplane.root.position.y < ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)) {
+            // if (airplane.root.position.y < ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)) {
+            // const altitude = ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z) || 0
+
+            const altitude = getHeightAtOctreeGroundCoordinates(scene, airplane.root.position) || 0
+            if (airplane.root.position.y < 0) {
                 // TODO: show explosion first, only then go to "game lost" screen
                 gameLost()
                 return

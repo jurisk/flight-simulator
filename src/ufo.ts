@@ -9,7 +9,7 @@ import {loadMesh, MeshSet} from "./loading"
 import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {Color3} from "@babylonjs/core/Maths/math.color"
-import {EdgeLength, MaxCoordinate, MinCoordinate} from "./environment"
+import {EdgeLength, MaxCoordinate, MaxHeight, MinCoordinate} from "./environment"
 
 function r(): number {
     return (Math.random() - 0.5) * 2
@@ -55,8 +55,8 @@ export class Ufo {
                 this.sphere.isVisible = true
                 this.meshSet.dispose()
             } else {
-                if (this.sphere.position.y < 100) { // if we are too low, go up a bit
-                    const force = 100 - this.sphere.position.y
+                if (this.sphere.position.y < MaxHeight * 1.2) { // if we are too low, go up a bit
+                    const force = MaxHeight * 1.2 - this.sphere.position.y
                     this.sphere.applyImpulse(new Vector3(0, Math.random() * force, 0).scale(deltaTime), this.sphere.position)
                 }
 
@@ -108,7 +108,7 @@ async function loadMeshSet() {
 function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
     const x = r() * EdgeLength * 0.5
     const z = r() * EdgeLength * 0.5
-    const initialPosition = new Vector3(x, 100, z)
+    const initialPosition = new Vector3(x, MaxHeight * 1.25, z)
 
     // .createInstance was a mess, it created some weird hierarchy
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
