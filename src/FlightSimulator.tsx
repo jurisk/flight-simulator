@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, SceneLoader, Sound, UniversalCamera,
+    Vector3, Scene, SceneLoader, Sound, UniversalCamera, LinesBuilder,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -10,7 +10,7 @@ import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {loadAirplane, updateAirplane} from "./airplane"
 import {createUfos} from "./ufo"
-import {fogSkyLight, getHeightAtOctreeGroundCoordinates, loadMap} from "./environment"
+import {fogSkyLight, loadMap} from "./environment"
 import {useSetRecoilState} from "recoil"
 import {gameState} from "./state"
 import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
@@ -18,6 +18,7 @@ import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import * as CANNON from "cannon"
 import {createCannonBall} from "./cannon-ball"
 import {isDebug} from "./util"
+import {Color3} from "@babylonjs/core/Maths/math.color"
 window.CANNON = CANNON
 
 interface FlightSimulatorProps {
@@ -102,13 +103,14 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
                 return
             }
 
-            // TODO: None of these two approaches actually worked, you can fly through with mountains
-            // if (ground.intersectsMesh(airplane.children[0], false, true)) {
-            // if (airplane.root.position.y < ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)) {
-            // const altitude = ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z) || 0
+            const height = ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
+            const altitude = Math.max(0, height)
+            console.log(airplane.root.position.x, airplane.root.position.z, height)
 
-            const altitude = getHeightAtOctreeGroundCoordinates(scene, airplane.root.position) || 0
-            if (airplane.root.position.y < 0) {
+            const red = Color3.Red().toColor4(1)
+            LinesBuilder.CreateLines("altitude-line", {points: [airplane.root.position, new Vector3(airplane.root.position.x, altitude, airplane.root.position.z)], colors: [red, red]})
+
+            if (airplane.root.position.y < altitude) {
                 // TODO: show explosion first, only then go to "game lost" screen
                 gameLost()
                 return
