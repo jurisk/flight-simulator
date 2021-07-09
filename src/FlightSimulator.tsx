@@ -93,43 +93,42 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             { playbackRate: 1, volume: 0.1 },
         )
 
-        scene.registerBeforeRender(() => {
-            if (ufos.every((x) => x.destructionFinished())) {
-                // wait a bit, only then go to "game won" screen
-                gameWon()
-                return
-            }
-
-            const height = plainGround.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
-            const altitude = Math.max(0, height)
-            console.log(airplane.root.position.x, airplane.root.position.z, height)
-
-            if (airplane.root.position.y < altitude) {
-                // TODO: show explosion first, only then go to "game lost" screen
-                gameLost()
-                return
-            }
-
+        const onBeforeRender = () => {
             const deltaTime = scene.deltaTime
             controls = updateControls(controls, deltaTime, pressedKeys)
-
             updateAirplane(airplane.root, deltaTime, controls)
-
             ufos.forEach((ufo) =>
                 ufo.update(deltaTime)
             )
-
             if (controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!
                 createCannonBall(airplane.root, ufos, plainGround, gunshot, scene)
                 // TODO: have a lot but not infinite ammo
             }
-
             const followDirection = new Vector3(0, 0.2, -1)
             const FollowCameraDistance = 20
             camera.position = airplane.root.position.add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
             camera.target = airplane.root.position
-        })
+        }
+
+        scene.registerBeforeRender(onBeforeRender)
+
+        const checkForWin = () => {
+            if (ufos.every((x) => x.destructionFinished())) {
+                // wait a bit, only then go to "game won" screen
+                gameWon()
+                return
+            }
+            const height = plainGround.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
+            const altitude = Math.max(0, height)
+            if (airplane.root.position.y < altitude) {
+                // TODO: show explosion first, only then go to "game lost" screen
+                gameLost()
+                return
+            }
+        }
+
+        scene.registerAfterRender(checkForWin)
 
         engine.runRenderLoop(() => {
             try {
@@ -139,8 +138,6 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             }
         })
     }
-
-
 
     return (
         <div>
