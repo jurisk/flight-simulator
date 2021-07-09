@@ -1,6 +1,6 @@
 import React from "react"
 import {useSetRecoilState} from "recoil"
-import {gameState, State} from "./state"
+import {gameState} from "./state"
 
 export const MainMenu = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
@@ -39,7 +39,9 @@ export const MainMenu = (): JSX.Element => {
                 </div>
             )}
 
-            <button onClick={() => setState(State.Playing)}>Play</button>
+            <button onClick={() => setState({type: "Playing", ufos: 1})}>Easy</button>
+            <button onClick={() => setState({type: "Playing", ufos: 3})}>Moderate</button>
+            <button onClick={() => setState({type: "Playing", ufos: 7})}>Hard</button>
         </div>
     )
 }

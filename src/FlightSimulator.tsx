@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, SceneLoader, Sound, FreeCamera,
+    Vector3, Scene, SceneLoader, Sound, UniversalCamera,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -12,22 +12,27 @@ import {loadAirplane, updateAirplane} from "./airplane"
 import {createUfos} from "./ufo"
 import {fogSkyLight, getHeightAtOctreeGroundCoordinates, loadMap} from "./environment"
 import {useSetRecoilState} from "recoil"
-import {gameState, State} from "./state"
+import {gameState} from "./state"
 import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
 import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import * as CANNON from "cannon"
 import {createCannonBall} from "./cannon-ball"
+import {isDebug} from "./util"
 window.CANNON = CANNON
 
-export const FlightSimulator = (): JSX.Element => {
+interface FlightSimulatorProps {
+    ufos: number,
+}
+
+export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
     function gameLost(): void {
-        setState(State.GameLost)
+        setState({type: "GameLost"})
     }
 
     const gameWon = () => {
-        setState(State.GameWon)
+        setState({type: "GameWon"})
     }
 
     // TODO: also be able to drop a few bombs which are slower, have area impact and can kill both the plane and the alien ship!
@@ -49,14 +54,16 @@ export const FlightSimulator = (): JSX.Element => {
             fireCannons: false,
         }
 
-        scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
+        if (isDebug()) {
+            scene.debugLayer.show({ embedMode: true }).catch((x) => console.error(x))
+        }
 
         const engine = scene.getEngine()
         const canvas = engine.getRenderingCanvas()
 
         fogSkyLight(scene)
 
-        const camera = new FreeCamera("free-camera", Vector3.Zero(), scene)
+        const camera = new UniversalCamera("universal-camera", Vector3.Zero(), scene)
         camera.attachControl(canvas, false)
         const canvasElement = document.getElementById("canvas")
         if (canvasElement) { // TODO: this doesn't really work, focus is not really gained
@@ -75,7 +82,7 @@ export const FlightSimulator = (): JSX.Element => {
 
         const airplane = await loadAirplane()
 
-        const ufos = await createUfos(scene)
+        const ufos = await createUfos(scene, props.ufos)
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
             { playbackRate: 1, volume: 0.1 },

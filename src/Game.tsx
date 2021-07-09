@@ -1,6 +1,6 @@
 import React from "react"
 import {useRecoilValue} from "recoil"
-import {gameState, State} from "./state"
+import {gameState} from "./state"
 import {FlightSimulator} from "./FlightSimulator"
 import {MainMenu} from "./MainMenu"
 import {GameWon} from "./GameWon"
@@ -9,14 +9,14 @@ import {GameLost} from "./GameLost"
 export const Game = (): JSX.Element => {
     const state = useRecoilValue(gameState)
 
-    switch (state) {
-    case State.MainMenu:
+    switch (state.type) {
+    case "MainMenu":
         return (<MainMenu/>)
-    case State.Playing:
-        return (<FlightSimulator/>)
-    case State.GameLost:
+    case "Playing":
+        return (<FlightSimulator ufos={state.ufos}/>)
+    case "GameLost":
         return (<GameLost/>)
-    case State.GameWon:
+    case "GameWon":
         return (<GameWon/>)
     }
 }

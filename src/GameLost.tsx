@@ -1,6 +1,6 @@
 import React from "react"
 import {useSetRecoilState} from "recoil"
-import {gameState, State} from "./state"
+import {gameState} from "./state"
 
 export const GameLost = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
@@ -18,7 +18,7 @@ export const GameLost = (): JSX.Element => {
                 CATS: All your base are belong to us!!!
             </div>
 
-            <button onClick={() => setState(State.MainMenu)}>Main Menu</button>
+            <button onClick={() => setState({type: "MainMenu"})}>Main Menu</button>
         </div>
     )
 }

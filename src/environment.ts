@@ -10,6 +10,7 @@ import {
 } from "@babylonjs/core"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
 import {Nullable} from "@babylonjs/core/types"
+import {isDebug} from "./util"
 
 export function fogSkyLight(scene: Scene): void {
     const SkyBlue = Color3.FromHexString("#77B5FE")
@@ -41,10 +42,7 @@ export function loadMap(scene: Scene): Promise<GroundMesh> {
             maxHeight: MaxHeight,
             updatable: false,
             onReady: (x) => {
-                console.log(x);
-                [-20, -10, 0, 10, 20].forEach((n) => {
-                    console.log(x.getHeightAtCoordinates(n, n))
-                })
+                console.log("GroundMesh loaded", x)
                 resolve(x)
             }
         }, scene)
@@ -63,8 +61,10 @@ export function getHeightAtOctreeGroundCoordinates(scene: Scene, from: Vector3):
 
     // console.log(from, hit?.pickedPoint)
     if (hit?.pickedPoint) {
-        const red = Color3.Red().toColor4(1)
-        LinesBuilder.CreateLines("line", {points: [origin, hit?.pickedPoint], colors: [red, red]})
+        if (isDebug()) {
+            const red = Color3.Red().toColor4(1)
+            LinesBuilder.CreateLines("line", {points: [origin, hit?.pickedPoint], colors: [red, red]})
+        }
 
         return hit.pickedPoint.y
     } else {
