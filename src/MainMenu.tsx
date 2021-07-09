@@ -42,14 +42,14 @@ export const MainMenu = (): JSX.Element => {
             <section className="showcase">
                 <div className="nes-container with-title">
                     <p className="title">Controls</p>
-                    <p>Use:
+                    <div>Use:
                         <ul>
                             <li>`E` and `D` for pitch</li>
                             <li>`S` and `F` for roll</li>
                             <li>`W` and `R` for rudder</li>
                             <li>`Space` to shoot cannon</li>
                         </ul>
-                    </p>
+                    </div>
                 </div>
             </section>
 

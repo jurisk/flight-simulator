@@ -27,16 +27,23 @@ interface FlightSimulatorProps {
 export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
-    function gameLost(): void {
-        setState({type: "GameLost"})
-    }
-
-    const gameWon = () => {
-        setState({type: "GameWon"})
-    }
-
     // TODO: also be able to drop a few bombs which are slower, have area impact and can kill both the plane and the alien ship!
     const onSceneReady = async (scene: Scene) => {
+        function cleanUp(): void {
+            scene.dispose()
+            camera.detachControl()
+        }
+
+        function gameLost(): void {
+            cleanUp()
+            setState({type: "GameLost"})
+        }
+
+        const gameWon = () => {
+            cleanUp()
+            setState({type: "GameWon"})
+        }
+
         SceneLoader.ShowLoadingScreen = true // does not seem to do anything
 
         scene.enablePhysics(new Vector3(0, -9.8, 0), new CannonJSPlugin())
@@ -128,8 +135,16 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             camera.target = airplane.root.position
         })
 
-        engine.runRenderLoop(() => scene.render())
+        engine.runRenderLoop(() => {
+            try {
+                scene.render()
+            } catch (e) {
+                console.error(e)
+            }
+        })
     }
+
+
 
     return (
         <div>

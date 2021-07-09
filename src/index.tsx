@@ -5,10 +5,13 @@ import { App } from "./App"
 import reportWebVitals from "./reportWebVitals"
 import "nes.css/css/nes.min.css"
 import "./style.css"
+import {ErrorBoundary} from "./ErrorBoundary"
 
 ReactDOM.render(
     <React.StrictMode>
-        <App />
+        <ErrorBoundary> {/* Was getting "no camera" errors on state changes otherwise */}
+            <App />
+        </ErrorBoundary>
     </React.StrictMode>,
     document.getElementById("root")
 )
