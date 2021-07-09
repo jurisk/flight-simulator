@@ -9,6 +9,7 @@ import {
     Vector3
 } from "@babylonjs/core"
 import {Texture} from "@babylonjs/core/Materials/Textures/texture"
+import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 
 export function fogSkyLight(scene: Scene): void {
     const SkyBlue = Color3.FromHexString("#77B5FE")
@@ -30,8 +31,20 @@ export const MinCoordinate = -MaxCoordinate
 
 export const MaxHeight = 100
 
+/* Hack because 'getHeightAtCoordinates' fails with 'physicsImpostor' set */
+export function loadMapWithPhysics(scene: Scene): Promise<GroundMesh> {
+    return loadMap(scene)
+        .then((map) => {
+            map.physicsImpostor = new PhysicsImpostor(map, PhysicsImpostor.HeightmapImpostor, {mass: 0})
+            return map
+        })
+}
+
 export function loadMap(scene: Scene): Promise<GroundMesh> {
     return new Promise<GroundMesh>((resolve) => {
+        const mapMaterial = new StandardMaterial("map-material", scene)
+        mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
+
         MeshBuilder.CreateGroundFromHeightMap("map", "assets/textures/worldHeightMap.jpeg", {
             width: EdgeLength,
             height: EdgeLength,
@@ -40,9 +53,8 @@ export function loadMap(scene: Scene): Promise<GroundMesh> {
             maxHeight: MaxHeight,
             updatable: false,
             onReady: (map) => {
-                const mapMaterial = new StandardMaterial("map-material", scene)
-                mapMaterial.diffuseTexture = new Texture("assets/textures/earth.jpeg", scene)
                 map.material = mapMaterial
+                map.isPickable = true
                 map.updateCoordinateHeights()
                 console.log("GroundMesh loaded", map)
                 resolve(map)

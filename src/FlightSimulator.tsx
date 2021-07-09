@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, SceneLoader, Sound, UniversalCamera, LinesBuilder,
+    Vector3, Scene, SceneLoader, Sound, UniversalCamera,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -10,15 +10,13 @@ import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {loadAirplane, updateAirplane} from "./airplane"
 import {createUfos} from "./ufo"
-import {fogSkyLight, loadMap} from "./environment"
+import {fogSkyLight, loadMap, loadMapWithPhysics} from "./environment"
 import {useSetRecoilState} from "recoil"
 import {gameState} from "./state"
 import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
-import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import * as CANNON from "cannon"
 import {createCannonBall} from "./cannon-ball"
 import {isDebug} from "./util"
-import {Color3} from "@babylonjs/core/Maths/math.color"
 window.CANNON = CANNON
 
 interface FlightSimulatorProps {
@@ -83,10 +81,9 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             console.log("No canvas")
         }
 
-        const ground = await loadMap(scene)
-        // ground.optimize(128)
-        ground.isPickable = true
-        ground.physicsImpostor = new PhysicsImpostor(ground, PhysicsImpostor.HeightmapImpostor, { mass: 0 })
+        await loadMapWithPhysics(scene)
+        const plainGround = await loadMap(scene)
+        plainGround.isVisible = false
 
         const airplane = await loadAirplane()
 
@@ -103,12 +100,9 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
                 return
             }
 
-            const height = ground.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
+            const height = plainGround.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
             const altitude = Math.max(0, height)
             console.log(airplane.root.position.x, airplane.root.position.z, height)
-
-            const red = Color3.Red().toColor4(1)
-            LinesBuilder.CreateLines("altitude-line", {points: [airplane.root.position, new Vector3(airplane.root.position.x, altitude, airplane.root.position.z)], colors: [red, red]})
 
             if (airplane.root.position.y < altitude) {
                 // TODO: show explosion first, only then go to "game lost" screen
@@ -127,7 +121,7 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
             if (controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!
-                createCannonBall(airplane.root, ufos, ground, gunshot, scene)
+                createCannonBall(airplane.root, ufos, plainGround, gunshot, scene)
                 // TODO: have a lot but not infinite ammo
             }
 
