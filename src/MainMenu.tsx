@@ -1,47 +1,66 @@
 import React from "react"
 import {useSetRecoilState} from "recoil"
 import {gameState} from "./state"
+import {NesLeftBalloon, NesRightBalloon} from "./nes"
 
 export const MainMenu = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
-    const texts = [
-        "In A.D. 2101",
-        "war was beginning",
-        "Captain: What happen ?",
-        "Mechanic: Somebody set up us the bomb.",
-        "Operator: We get signal.",
-        "Captain: What!",
-        "Operator: Main screen turn on.",
-        "Captain: It's you!",
-        "CATS: How are you gentlemen !!",
-        "CATS: All your base are belong to us.",
-        "CATS: You are on the way to destruction.",
-        "Captain: What you say !!",
-        "CATS: You have no chance to survive make your time.",
-        "CATS: Ha ha ha ha ..",
-        "Operator: Captain!!",
-        "Captain: Take off every 'ZIG'!!",
-        "Captain: You know what you doing.",
-        "Captain: Move 'ZIG'.",
-        "Captain: For great justice.",
-        "",
-        "Use E and D for pitch, S and F for roll, W and R for rudder, Space to shoot cannon"
-    ]
-
     return (
-        <div>
+        <section className="topic">
             <h1>Main Menu</h1>
 
-            {texts.map((x, idx) =>
-                <div key={idx}>
-                    {x}
-                </div>
-            )}
+            <section className="showcase">
+                <section className="nes-container with-title">
+                    <p className="title">Situation Report</p>
 
-            <button onClick={() => setState({type: "Playing", ufos: 1})}>Easy</button>
-            <button onClick={() => setState({type: "Playing", ufos: 3})}>Moderate</button>
-            <button onClick={() => setState({type: "Playing", ufos: 7})}>Hard</button>
-        </div>
+                    <section className="message-list">
+                        <div className="nes-container is-rounded">
+                            <p className="nes-text is-error">In A.D. 2101 war was beginning</p>
+                        </div>
+                        <NesLeftBalloon>Captain: What happen ?</NesLeftBalloon>
+                        <NesLeftBalloon>Mechanic: Somebody set up us the bomb.</NesLeftBalloon>
+                        <NesLeftBalloon>Operator: We get signal.</NesLeftBalloon>
+                        <NesLeftBalloon>Captain: What!</NesLeftBalloon>
+                        <NesLeftBalloon>Operator: Main screen turn on.</NesLeftBalloon>
+                        <NesLeftBalloon>Captain: It&apos;s you!</NesLeftBalloon>
+                        <NesRightBalloon>CATS: How are you gentlemen !!</NesRightBalloon>
+                        <NesRightBalloon>CATS: All your base are belong to us.</NesRightBalloon>
+                        <NesRightBalloon>CATS: You are on the way to destruction.</NesRightBalloon>
+                        <NesLeftBalloon>Captain: What you say !!</NesLeftBalloon>
+                        <NesRightBalloon>CATS: You have no chance to survive make your time.</NesRightBalloon>
+                        <NesRightBalloon>CATS: Ha ha ha ha ..</NesRightBalloon>
+                        <NesLeftBalloon>Operator: Captain !!</NesLeftBalloon>
+                        <NesLeftBalloon>Captain: Take off every &apos;ZIG&apos; !!</NesLeftBalloon>
+                        <NesLeftBalloon>Captain: You know what you doing.</NesLeftBalloon>
+                        <NesLeftBalloon>Captain: Move &apos;ZIG&apos;.</NesLeftBalloon>
+                        <NesLeftBalloon>Captain: For great justice.</NesLeftBalloon>
+                    </section>
+                </section>
+            </section>
+
+            <section className="showcase">
+                <div className="nes-container with-title">
+                    <p className="title">Controls</p>
+                    <p>Use:
+                        <ul>
+                            <li>`E` and `D` for pitch</li>
+                            <li>`S` and `F` for roll</li>
+                            <li>`W` and `R` for rudder</li>
+                            <li>`Space` to shoot cannon</li>
+                        </ul>
+                    </p>
+                </div>
+            </section>
+
+            <section className="showcase">
+                <section className="nes-container with-title is-centered">
+                    <p className="title">Move &apos;ZIG&apos;</p>
+                    <button className="nes-btn is-success" onClick={() => setState({type: "Playing", ufos: 1})}>Easy</button>
+                    <button className="nes-btn is-warning" onClick={() => setState({type: "Playing", ufos: 3})}>Moderate</button>
+                    <button className="nes-btn is-error" onClick={() => setState({type: "Playing", ufos: 7})}>Hard</button>
+                </section>
+            </section>
+        </section>
     )
 }
