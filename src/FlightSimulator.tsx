@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, SceneLoader, Sound, UniversalCamera,
+    Vector3, Scene, SceneLoader, Sound, UniversalCamera, DynamicTexture, StandardMaterial,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -17,10 +17,16 @@ import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
 import * as CANNON from "cannon"
 import {createCannonBall} from "./cannon-ball"
 import {isDebug} from "./util"
+import {Mesh} from "@babylonjs/core/Meshes/mesh"
 window.CANNON = CANNON
 
 interface FlightSimulatorProps {
     ufos: number,
+}
+
+interface AirplaneState {
+    cannonShells: number,
+    bombs: number,
 }
 
 export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
@@ -30,18 +36,26 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
     // TODO: you can lose by running out of ammo or running out of time (have the alien ships shoot lasers at the earth)
     const onSceneReady = async (scene: Scene) => {
         function cleanUp(): void {
-            scene.dispose()
-            camera.detachControl()
+            try {
+                scene.dispose()
+                camera.detachControl()
+            } catch (e) {
+                console.error(e)
+            }
         }
 
-        function gameLost(): void {
-            cleanUp()
-            setState({type: "GameLost"})
+        function gameLost(delay: number): void {
+            setTimeout(() => {
+                cleanUp()
+                setState({type: "GameLost"})
+            }, delay)
         }
 
-        const gameWon = () => {
-            cleanUp()
-            setState({type: "GameWon"})
+        const gameWon = (delay: number) => {
+            setTimeout(() => {
+                cleanUp()
+                setState({type: "GameWon"})
+            }, delay)
         }
 
         SceneLoader.ShowLoadingScreen = true // does not seem to do anything
@@ -88,6 +102,23 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         const airplane = await loadAirplane()
 
+        let airplaneState: AirplaneState = {
+            cannonShells: 1000,
+            bombs: 2,
+        }
+
+        const gauges = Mesh.CreatePlane("gauges", 1, scene, false)
+        gauges.scaling.x = .1
+        gauges.scaling.y = .1
+        const gaugesTexture = new DynamicTexture("gauges-texture", 666, scene, true)
+        const gaugesContext = gaugesTexture.getContext()
+        const gaugesMaterial = new StandardMaterial("gauges-material", scene)
+        gaugesMaterial.emissiveTexture = gaugesTexture
+        gaugesMaterial.diffuseTexture = gaugesTexture
+        gauges.material = gaugesMaterial
+        gauges.position.set(-.3, -.25, 1)
+        gauges.parent = camera
+
         const ufos = await createUfos(scene, props.ufos)
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
@@ -103,9 +134,16 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             )
             if (controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!
-                createCannonBall(airplane.root, ufos, plainGround, gunshot, scene)
-                // TODO: have a lot but not infinite ammo
+                if (airplaneState.cannonShells > 0) {
+                    createCannonBall(airplane.root, ufos, plainGround, gunshot, scene)
+                    airplaneState = {
+                        cannonShells: airplaneState.cannonShells - 1,
+                        bombs: airplaneState.bombs,
+                    }
+                    // TODO: have a lot but not infinite ammo
+                }
             }
+
             const followDirection = new Vector3(0, 0.2, -1)
             const FollowCameraDistance = 20
             camera.position = airplane.root.position.add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
@@ -114,22 +152,38 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         scene.registerBeforeRender(onBeforeRender)
 
+        const onAfterRender = () => {
+            // gaugesContext.fillStyle = "white"
+            // gaugesContext.fillRect(0, 0, 666, 666)
+            gaugesContext.clearRect(0, 0, 666, 666)
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const clearColor: string = null as string
+            gaugesTexture.drawText("Speed: " + controls.throttle, null, 100, "80px verdana", "orange", clearColor)
+            gaugesTexture.drawText("Heading: " + camera.rotation.y.toFixed(), null, 220, "80px verdana", "orange", clearColor)
+            gaugesTexture.drawText("Altitude: " + camera.position.y.toFixed(), null, 340, "80px verdana", "orange", clearColor)
+            gaugesTexture.drawText("Lat: " + camera.position.z.toFixed(), null, 460, "80px verdana", "orange", clearColor)
+            gaugesTexture.drawText("Lon: " + camera.position.x.toFixed(), null, 580, "80px verdana", "orange", clearColor)
+
+            checkForWin()
+        }
+
         const checkForWin = () => {
             if (ufos.every((x) => x.destructionFinished())) {
                 // wait a bit, only then go to "game won" screen
-                gameWon()
+                gameWon(2000)
                 return
             }
             const height = plainGround.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
             const altitude = Math.max(0, height)
             if (airplane.root.position.y < altitude) {
-                // TODO: show explosion first, only then go to "game lost" screen
-                gameLost()
+                // TODO: show explosion first, and thus use a delay
+                gameLost(0)
                 return
             }
         }
 
-        scene.registerAfterRender(checkForWin)
+        scene.registerAfterRender(onAfterRender)
 
         engine.runRenderLoop(() => {
             try {

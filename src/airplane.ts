@@ -6,6 +6,7 @@ import {
 import {loadMesh, MeshSet} from "./loading"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
 
+// TODO: add jets e.g. https://playground.babylonjs.com/#0055NK#159
 export const loadAirplane = (): Promise<MeshSet<Mesh>> => loadMesh(
     "f15 task",
     ["F_15_C", "GLass", "TAnks"],
