@@ -13,7 +13,7 @@ export const Game = (): JSX.Element => {
     case "MainMenu":
         return (<MainMenu/>)
     case "Playing":
-        return (<FlightSimulator ufos={state.ufos}/>)
+        return (<FlightSimulator difficulty={state.difficulty}/>)
     case "GameLost":
         return (<GameLost/>)
     case "GameWon":

@@ -10,10 +10,12 @@ export class ErrorBoundary extends React.Component {
         this.state = { hasError: false }
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     componentDidCatch(error: Error, info: React.ErrorInfo) {
         console.error(error, info)
     }
 
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     render() {
         // eslint-disable-next-line react/prop-types
         return this.props.children

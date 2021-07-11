@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, SceneLoader, Sound, UniversalCamera, DynamicTexture, StandardMaterial,
+    Vector3, Scene, SceneLoader, Sound, UniversalCamera,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -12,21 +12,27 @@ import {loadAirplane, updateAirplane} from "./airplane"
 import {createUfos} from "./ufo"
 import {fogSkyLight, loadMap, loadMapWithPhysics} from "./environment"
 import {useSetRecoilState} from "recoil"
-import {gameState} from "./state"
+import {Difficulty, gameState} from "./state"
 import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
 import * as CANNON from "cannon"
 import {createCannonBall} from "./cannon-ball"
 import {isDebug} from "./util"
-import {Mesh} from "@babylonjs/core/Meshes/mesh"
+import {createGui} from "./gui"
 window.CANNON = CANNON
 
 interface FlightSimulatorProps {
-    ufos: number,
+    difficulty: Difficulty,
 }
 
 interface AirplaneState {
     cannonShells: number,
     bombs: number,
+}
+
+const initialUfos: Record<Difficulty, number> = {
+    [Difficulty.Easy]: 2,
+    [Difficulty.Moderate]: 4,
+    [Difficulty.Hard]: 12,
 }
 
 export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
@@ -107,19 +113,9 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             bombs: 2,
         }
 
-        const gauges = Mesh.CreatePlane("gauges", 1, scene, false)
-        gauges.scaling.x = .1
-        gauges.scaling.y = .1
-        const gaugesTexture = new DynamicTexture("gauges-texture", 666, scene, true)
-        const gaugesContext = gaugesTexture.getContext()
-        const gaugesMaterial = new StandardMaterial("gauges-material", scene)
-        gaugesMaterial.emissiveTexture = gaugesTexture
-        gaugesMaterial.diffuseTexture = gaugesTexture
-        gauges.material = gaugesMaterial
-        gauges.position.set(-.3, -.25, 1)
-        gauges.parent = camera
+        const guiSetters = createGui(scene)
 
-        const ufos = await createUfos(scene, props.ufos)
+        const ufos = await createUfos(scene, initialUfos[props.difficulty])
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
             { playbackRate: 1, volume: 0.1 },
@@ -148,23 +144,15 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             const FollowCameraDistance = 20
             camera.position = airplane.root.position.add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
             camera.target = airplane.root.position
+
+            guiSetters.setCannonShells(`Shells: ${airplaneState.cannonShells}`)
+            guiSetters.setThrustText(`Thrust: ${Math.round(controls.throttle*100)}%`)
+            guiSetters.setAltitudeText(`Altitude: ${airplane.root.position.y.toFixed()}`)
         }
 
         scene.registerBeforeRender(onBeforeRender)
 
         const onAfterRender = () => {
-            // gaugesContext.fillStyle = "white"
-            // gaugesContext.fillRect(0, 0, 666, 666)
-            gaugesContext.clearRect(0, 0, 666, 666)
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            const clearColor: string = null as string
-            gaugesTexture.drawText("Speed: " + controls.throttle, null, 100, "80px verdana", "orange", clearColor)
-            gaugesTexture.drawText("Heading: " + camera.rotation.y.toFixed(), null, 220, "80px verdana", "orange", clearColor)
-            gaugesTexture.drawText("Altitude: " + camera.position.y.toFixed(), null, 340, "80px verdana", "orange", clearColor)
-            gaugesTexture.drawText("Lat: " + camera.position.z.toFixed(), null, 460, "80px verdana", "orange", clearColor)
-            gaugesTexture.drawText("Lon: " + camera.position.x.toFixed(), null, 580, "80px verdana", "orange", clearColor)
-
             checkForWin()
         }
 

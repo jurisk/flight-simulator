@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react"
 import {useSetRecoilState} from "recoil"
-import {gameState} from "./state"
+import {Difficulty, gameState} from "./state"
 import {NesLeftBalloon, NesRightBalloon} from "./nes"
 import {List} from "immutable"
 
@@ -72,9 +72,9 @@ export const MainMenu = (): JSX.Element => {
             <section className="showcase">
                 <section className="nes-container with-title is-centered">
                     <p className="title">Move &apos;ZIG&apos;</p>
-                    <button className="nes-btn is-success" onClick={() => setState({type: "Playing", ufos: 1})}>Easy</button>
-                    <button className="nes-btn is-warning" onClick={() => setState({type: "Playing", ufos: 3})}>Moderate</button>
-                    <button className="nes-btn is-error" onClick={() => setState({type: "Playing", ufos: 7})}>Hard</button>
+                    <button className="nes-btn is-success" onClick={() => setState({type: "Playing", difficulty: Difficulty.Easy})}>Easy</button>
+                    <button className="nes-btn is-warning" onClick={() => setState({type: "Playing", difficulty: Difficulty.Moderate})}>Moderate</button>
+                    <button className="nes-btn is-error" onClick={() => setState({type: "Playing", difficulty: Difficulty.Hard})}>Hard</button>
                 </section>
             </section>
         </section>

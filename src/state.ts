@@ -5,9 +5,13 @@ export interface MainMenu {
     type: "MainMenu",
 }
 
+export enum Difficulty {
+    Easy, Moderate, Hard,
+}
+
 export interface Playing {
     type: "Playing",
-    ufos: number,
+    difficulty: Difficulty,
 }
 
 export interface GameWon {
@@ -23,5 +27,5 @@ export type State = MainMenu | Playing | GameWon | GameLost
 
 export const gameState = atom<State>({
     key: "gameState",
-    default: isDebug() ? { type: "Playing", ufos: 2 } : { type: "MainMenu" },
+    default: isDebug() ? { type: "Playing", difficulty: Difficulty.Easy } : { type: "MainMenu" },
 })
