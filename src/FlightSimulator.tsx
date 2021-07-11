@@ -50,10 +50,10 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             }
         }
 
-        function gameLost(delay: number): void {
+        function gameLost(delay: number, reason: string): void {
             setTimeout(() => {
                 cleanUp()
-                setState({type: "GameLost"})
+                setState({type: "GameLost", reason: reason})
             }, delay)
         }
 
@@ -145,6 +145,7 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             camera.position = airplane.root.position.add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
             camera.target = airplane.root.position
 
+            guiSetters.setUfosRemaining(`UFOs: ${ufosAlive()}`)
             guiSetters.setCannonShells(`Shells: ${airplaneState.cannonShells}`)
             guiSetters.setThrustText(`Thrust: ${Math.round(controls.throttle*100)}%`)
             guiSetters.setAltitudeText(`Altitude: ${airplane.root.position.y.toFixed()}`)
@@ -152,22 +153,28 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         scene.registerBeforeRender(onBeforeRender)
 
-        const onAfterRender = () => {
-            checkForWin()
-        }
+        const ufosAlive = (): number => ufos.filter((x) => !x.destructionFinished()).length
 
-        const checkForWin = () => {
-            if (ufos.every((x) => x.destructionFinished())) {
+        const onAfterRender = () => {
+            if (ufosAlive() <= 0) {
                 // wait a bit, only then go to "game won" screen
                 gameWon(2000)
                 return
-            }
-            const height = plainGround.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
-            const altitude = Math.max(0, height)
-            if (airplane.root.position.y < altitude) {
-                // TODO: show explosion first, and thus use a delay
-                gameLost(0)
-                return
+            } else {
+                const height = plainGround.getHeightAtCoordinates(airplane.root.position.x, airplane.root.position.z)
+                const altitude = Math.max(0, height)
+                if (airplane.root.position.y < altitude) {
+                    // TODO: show explosion first, and thus use a delay
+                    gameLost(0, "You crashed into the ground")
+                    return
+                }
+
+
+                if (ufos.some((ufo) => ufo.sphere.intersectsMesh(airplane.children[0]))) {
+                    // crashed into UFO!
+                    gameLost(0,  "You crashed into an UFO")
+                    return
+                }
             }
         }
 

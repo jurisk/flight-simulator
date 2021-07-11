@@ -20,6 +20,7 @@ export interface GameWon {
 
 export interface GameLost {
     type: "GameLost",
+    reason: string,
 }
 
 export type State = MainMenu | Playing | GameWon | GameLost

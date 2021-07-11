@@ -3,6 +3,7 @@ import * as GUI from "@babylonjs/gui"
 import {Scene} from "@babylonjs/core"
 
 export interface GuiSetters {
+    setUfosRemaining: (text: string) => void,
     setCannonShells: (text: string) => void,
     setThrustText: (text: string) => void,
     setAltitudeText: (text: string) => void,
@@ -35,11 +36,13 @@ export function createGui(scene: Scene): GuiSetters {
         }
     }
 
+    const ufosRemainingButton = createButton("ufos-remaining", "")
     const cannonShellsButton = createButton("cannon-shells", "")
     const thrustButton = createButton("thrust", "")
     const altitudeButton = createButton("altitude", "")
 
     return {
+        setUfosRemaining: setter(ufosRemainingButton),
         setCannonShells: setter(cannonShellsButton),
         setThrustText: setter(thrustButton),
         setAltitudeText: setter(altitudeButton),

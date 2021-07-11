@@ -15,7 +15,7 @@ export const Game = (): JSX.Element => {
     case "Playing":
         return (<FlightSimulator difficulty={state.difficulty}/>)
     case "GameLost":
-        return (<GameLost/>)
+        return (<GameLost reason={state.reason}/>)
     case "GameWon":
         return (<GameWon/>)
     }

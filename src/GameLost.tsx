@@ -3,7 +3,11 @@ import {useSetRecoilState} from "recoil"
 import {gameState} from "./state"
 import {NesRightBalloon} from "./nes"
 
-export const GameLost = (): JSX.Element => {
+interface GameLostProps {
+    reason: string,
+}
+
+export const GameLost = (props: GameLostProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
     return (
@@ -12,7 +16,7 @@ export const GameLost = (): JSX.Element => {
 
             <section className="nes-container">
                 <div className="nes-container with-title is-centered">
-                    <p className="title">Mission Failed</p>
+                    <p className="title">Mission Failed: {props.reason}</p>
                     <p className="nes-text is-error">You have failed in your mission and aliens have taken over your world! Sad!!!</p>
                 </div>
 
