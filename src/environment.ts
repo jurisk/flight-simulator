@@ -56,7 +56,6 @@ export function loadMap(scene: Scene): Promise<GroundMesh> {
                 map.material = mapMaterial
                 map.isPickable = true
                 map.updateCoordinateHeights()
-                console.log("GroundMesh loaded", map)
                 resolve(map)
             }
         }, scene)

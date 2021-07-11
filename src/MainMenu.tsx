@@ -1,11 +1,46 @@
-import React from "react"
+import React, {useEffect, useState} from "react"
 import {useSetRecoilState} from "recoil"
 import {gameState} from "./state"
 import {NesLeftBalloon, NesRightBalloon} from "./nes"
+import {List} from "immutable"
+
+const IntroMessages = List.of(
+    <div className="nes-container is-rounded"><p className="nes-text is-error">In A.D. 2101 war was beginning</p></div>,
+    <NesLeftBalloon>Captain: What happen ?</NesLeftBalloon>,
+    <NesLeftBalloon>Mechanic: Somebody set up us the bomb.</NesLeftBalloon>,
+    <NesLeftBalloon>Operator: We get signal.</NesLeftBalloon>,
+    <NesLeftBalloon>Captain: What!</NesLeftBalloon>,
+    <NesLeftBalloon>Operator: Main screen turn on.</NesLeftBalloon>,
+    <NesLeftBalloon>Captain: It&apos;s you!</NesLeftBalloon>,
+    <NesRightBalloon>CATS: How are you gentlemen !!</NesRightBalloon>,
+    <NesRightBalloon>CATS: All your base are belong to us.</NesRightBalloon>,
+    <NesRightBalloon>CATS: You are on the way to destruction.</NesRightBalloon>,
+    <NesLeftBalloon>Captain: What you say !!</NesLeftBalloon>,
+    <NesRightBalloon>CATS: You have no chance to survive make your time.</NesRightBalloon>,
+    <NesRightBalloon>CATS: Ha ha ha ha ..</NesRightBalloon>,
+    <NesLeftBalloon>Operator: Captain !!</NesLeftBalloon>,
+    <NesLeftBalloon>Captain: Take off every &apos;ZIG&apos; !!</NesLeftBalloon>,
+    <NesLeftBalloon>Captain: You know what you doing.</NesLeftBalloon>,
+    <NesLeftBalloon>Captain: Move &apos;ZIG&apos;.</NesLeftBalloon>,
+    <NesLeftBalloon>Captain: For great justice.</NesLeftBalloon>,
+    <div className="nes-container is-rounded"><p className="nes-text">Defeat the alien invasion force!</p></div>,
+)
 
 export const MainMenu = (): JSX.Element => {
     const setState = useSetRecoilState(gameState)
+    const [index, setIndex] = useState(0)
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIndex(index + 1)
+        }, 2000)
+
+        return () => clearTimeout(timer)
+    })
+
+    const selectedMessage = IntroMessages.get(index) || IntroMessages.last()
+
+    // TODO: maybe add music
     return (
         <section className="topic">
             <h1>Main Menu</h1>
@@ -15,26 +50,7 @@ export const MainMenu = (): JSX.Element => {
                     <p className="title">Situation Report</p>
 
                     <section className="message-list">
-                        <div className="nes-container is-rounded">
-                            <p className="nes-text is-error">In A.D. 2101 war was beginning</p>
-                        </div>
-                        <NesLeftBalloon>Captain: What happen ?</NesLeftBalloon>
-                        <NesLeftBalloon>Mechanic: Somebody set up us the bomb.</NesLeftBalloon>
-                        <NesLeftBalloon>Operator: We get signal.</NesLeftBalloon>
-                        <NesLeftBalloon>Captain: What!</NesLeftBalloon>
-                        <NesLeftBalloon>Operator: Main screen turn on.</NesLeftBalloon>
-                        <NesLeftBalloon>Captain: It&apos;s you!</NesLeftBalloon>
-                        <NesRightBalloon>CATS: How are you gentlemen !!</NesRightBalloon>
-                        <NesRightBalloon>CATS: All your base are belong to us.</NesRightBalloon>
-                        <NesRightBalloon>CATS: You are on the way to destruction.</NesRightBalloon>
-                        <NesLeftBalloon>Captain: What you say !!</NesLeftBalloon>
-                        <NesRightBalloon>CATS: You have no chance to survive make your time.</NesRightBalloon>
-                        <NesRightBalloon>CATS: Ha ha ha ha ..</NesRightBalloon>
-                        <NesLeftBalloon>Operator: Captain !!</NesLeftBalloon>
-                        <NesLeftBalloon>Captain: Take off every &apos;ZIG&apos; !!</NesLeftBalloon>
-                        <NesLeftBalloon>Captain: You know what you doing.</NesLeftBalloon>
-                        <NesLeftBalloon>Captain: Move &apos;ZIG&apos;.</NesLeftBalloon>
-                        <NesLeftBalloon>Captain: For great justice.</NesLeftBalloon>
+                        {selectedMessage}
                     </section>
                 </section>
             </section>
@@ -44,8 +60,8 @@ export const MainMenu = (): JSX.Element => {
                     <p className="title">Controls</p>
                     <div>Use:
                         <ul>
-                            <li>`E` and `D` for pitch</li>
-                            <li>`S` and `F` for roll</li>
+                            <li>`E` and `D` or `Up` and `Down` arrows for pitch</li>
+                            <li>`S` and `F` or `Left` and `Right` arrows for roll</li>
                             <li>`W` and `R` for rudder</li>
                             <li>`Space` to shoot cannon</li>
                         </ul>

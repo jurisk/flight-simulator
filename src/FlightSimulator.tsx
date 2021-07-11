@@ -27,6 +27,7 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
     // TODO: also be able to drop a few bombs which are slower, have area impact and can kill both the plane and the alien ship!
+    // TODO: you can lose by running out of ammo or running out of time (have the alien ships shoot lasers at the earth)
     const onSceneReady = async (scene: Scene) => {
         function cleanUp(): void {
             scene.dispose()
