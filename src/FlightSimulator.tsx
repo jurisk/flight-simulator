@@ -44,6 +44,8 @@ export interface GameState {
     earth: EarthState,
 }
 
+// TODO: can aliens also have alien bases that they land and then you have to either strafe them with cannons or drop bombs?
+// TODO: show HP bar for UFOs?
 export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
@@ -169,7 +171,9 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
         const ufosAlive = (): number => ufos.filter((x) => !x.destructionFinished()).length
 
         const onAfterRender = () => {
-            if (ufosAlive() <= 0) {
+            if (gameState.earth.hitPoints <= 0) {
+                gameLost(0, "Alien invasion succeeded")
+            } else if (ufosAlive() <= 0) {
                 // wait a bit, only then go to "game won" screen
                 gameWon(2000)
                 return

@@ -16,12 +16,14 @@ function r(): number {
 }
 
 export class Ufo {
+    scene: Scene
     meshSet: TransformNode
     sphere: Mesh
     hitPoints: number
     destructionStarted: number | null
 
-    constructor(_meshSet: TransformNode, _sphere: Mesh) {
+    constructor(_scene: Scene, _meshSet: TransformNode, _sphere: Mesh) {
+        this.scene = _scene
         this.meshSet = _meshSet
         this.sphere = _sphere
         this.hitPoints = 5
@@ -37,6 +39,27 @@ export class Ufo {
             return (new Date().valueOf() + 1000) > this.destructionStarted
         } else {
             return false
+        }
+    }
+
+    dropBomb(): void {
+        const bomb = SphereBuilder.CreateSphere("ufo-bomb", {diameter: 2}, this.scene)
+        const bombMaterial = new StandardMaterial("ufo-bomb-material", this.scene)
+        const color = Color3.Red()
+        bombMaterial.diffuseColor = color
+        bombMaterial.emissiveColor = color
+        bombMaterial.specularColor = color
+        bomb.material = bombMaterial
+        bomb.position = this.sphere.position.subtractFromFloats(0, 3, 0)
+        bomb.physicsImpostor = new PhysicsImpostor(
+            bomb,
+            PhysicsImpostor.SphereImpostor,
+            { mass: 10, friction: 0.5, restitution: 0.3 },
+            this.scene,
+        )
+
+        bomb.physicsImpostor.onCollideEvent = (object, target) => {
+            console.log("Bomb hit", object, target)
         }
     }
 
@@ -77,6 +100,10 @@ export class Ufo {
                 }
 
                 this.sphere.applyImpulse(new Vector3(r() * 10, 0, r() * 10).scale(deltaTime), this.sphere.position)
+
+                if (Math.random() < 0.005) { // some probability every tick - note that this is dependent on framerate - should be improved!
+                    this.dropBomb()
+                }
             }
         }
 
@@ -135,5 +162,5 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
         scene,
     )
 
-    return new Ufo(root, ufoBall)
+    return new Ufo(scene, root, ufoBall)
 }

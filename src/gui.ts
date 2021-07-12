@@ -88,5 +88,4 @@ export function updateGui(gui: GuiSetters, gameState: GameState, ufos: number, a
     gui.setRudderText(`Rudder: ${formatControl(gameState.controls.rudder, "L", "R")}`)
     gui.setRollText(`Roll: ${formatControl(gameState.controls.roll, "L", "R")}`)
     gui.setPitchText(`Pitch: ${formatControl(gameState.controls.pitch, "D", "U")}`)
-
 }
