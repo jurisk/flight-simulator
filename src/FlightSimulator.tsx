@@ -17,7 +17,7 @@ import {CannonJSPlugin} from "@babylonjs/core/Physics/Plugins"
 import * as CANNON from "cannon"
 import {createCannonBall} from "./cannon-ball"
 import {isDebug} from "./util"
-import {createGui} from "./gui"
+import {createGui, updateGui} from "./gui"
 window.CANNON = CANNON
 
 interface FlightSimulatorProps {
@@ -26,7 +26,6 @@ interface FlightSimulatorProps {
 
 interface AirplaneState {
     cannonShells: number,
-    bombs: number,
 }
 
 const initialUfos: Record<Difficulty, number> = {
@@ -35,10 +34,19 @@ const initialUfos: Record<Difficulty, number> = {
     [Difficulty.Hard]: 12,
 }
 
+interface EarthState {
+    hitPoints: number,
+}
+
+export interface GameState {
+    controls: Controls,
+    airplane: AirplaneState,
+    earth: EarthState,
+}
+
 export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
-    // TODO: also be able to drop a few bombs which are slower, have area impact and can kill both the plane and the alien ship!
     // TODO: you can lose by running out of ammo or running out of time (have the alien ships shoot lasers at the earth)
     const onSceneReady = async (scene: Scene) => {
         function cleanUp(): void {
@@ -73,12 +81,20 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             pressedKeys = updateKeys(pressedKeys, e)
         })
 
-        let controls: Controls = {
-            throttle: 0.75,
-            roll: 0,
-            rudder: 0,
-            pitch: 0,
-            fireCannons: false,
+        let gameState: GameState = {
+            controls: {
+                throttle: 0.75,
+                roll: 0,
+                rudder: 0,
+                pitch: 0,
+                fireCannons: false,
+            },
+            airplane: {
+                cannonShells: 1000,
+            },
+            earth: {
+                hitPoints: 1000,
+            }
         }
 
         if (isDebug()) {
@@ -108,11 +124,6 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         const airplane = await loadAirplane()
 
-        let airplaneState: AirplaneState = {
-            cannonShells: 1000,
-            bombs: 2,
-        }
-
         const guiSetters = createGui(scene)
 
         const ufos = await createUfos(scene, initialUfos[props.difficulty])
@@ -123,20 +134,25 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         const onBeforeRender = () => {
             const deltaTime = scene.deltaTime
-            controls = updateControls(controls, deltaTime, pressedKeys)
-            updateAirplane(airplane.root, deltaTime, controls)
+            gameState = {
+                ...gameState,
+                controls: updateControls(gameState.controls, deltaTime, pressedKeys),
+            }
+            updateAirplane(airplane.root, deltaTime, gameState.controls)
             ufos.forEach((ufo) =>
                 ufo.update(deltaTime)
             )
-            if (controls.fireCannons) {
+            if (gameState.controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!
-                if (airplaneState.cannonShells > 0) {
+                if (gameState.airplane.cannonShells > 0) {
                     createCannonBall(airplane.root, ufos, plainGround, gunshot, scene)
-                    airplaneState = {
-                        cannonShells: airplaneState.cannonShells - 1,
-                        bombs: airplaneState.bombs,
+                    gameState = {
+                        ...gameState,
+                        airplane: {
+                            ...gameState.airplane,
+                            cannonShells: gameState.airplane.cannonShells - 1,
+                        }
                     }
-                    // TODO: have a lot but not infinite ammo
                 }
             }
 
@@ -145,10 +161,7 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             camera.position = airplane.root.position.add(airplane.root.getDirection(followDirection).scale(FollowCameraDistance))
             camera.target = airplane.root.position
 
-            guiSetters.setUfosRemaining(`UFOs: ${ufosAlive()}`)
-            guiSetters.setCannonShells(`Shells: ${airplaneState.cannonShells}`)
-            guiSetters.setThrustText(`Thrust: ${Math.round(controls.throttle*100)}%`)
-            guiSetters.setAltitudeText(`Altitude: ${airplane.root.position.y.toFixed()}`)
+            updateGui(guiSetters, gameState, ufosAlive(), airplane.root.position)
         }
 
         scene.registerBeforeRender(onBeforeRender)
