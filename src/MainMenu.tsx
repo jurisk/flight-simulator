@@ -3,6 +3,7 @@ import {useSetRecoilState} from "recoil"
 import {Difficulty, gameState} from "./state"
 import {NesLeftBalloon, NesRightBalloon} from "./nes"
 import {List} from "immutable"
+import "./MainMenu.css"
 
 const IntroMessages = List.of(
     <div className="nes-container is-rounded"><p className="nes-text is-error">In A.D. 2101 war was beginning</p></div>,
@@ -72,9 +73,11 @@ export const MainMenu = (): JSX.Element => {
             <section className="showcase">
                 <section className="nes-container with-title is-centered">
                     <p className="title">Move &apos;ZIG&apos;</p>
-                    <button className="nes-btn is-success" onClick={() => setState({type: "Playing", difficulty: Difficulty.Easy})}>Easy</button>
+                    <button className="nes-btn is-success" onClick={() => setState({type: "Playing", difficulty: Difficulty.VeryEasy})}>Very Easy</button>
+                    <button className="nes-btn is-success button-easy" onClick={() => setState({type: "Playing", difficulty: Difficulty.Easy})}>Easy</button>
                     <button className="nes-btn is-warning" onClick={() => setState({type: "Playing", difficulty: Difficulty.Moderate})}>Moderate</button>
-                    <button className="nes-btn is-error" onClick={() => setState({type: "Playing", difficulty: Difficulty.Hard})}>Hard</button>
+                    <button className="nes-btn is-error button-hard" onClick={() => setState({type: "Playing", difficulty: Difficulty.Hard})}>Hard</button>
+                    <button className="nes-btn is-error" onClick={() => setState({type: "Playing", difficulty: Difficulty.VeryHard})}>Very Hard</button>
                 </section>
             </section>
         </section>

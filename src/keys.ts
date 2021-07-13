@@ -6,7 +6,7 @@ export type PressedKeys = Set<string>
 export const newPressedKeys: PressedKeys = Set<string>()
 
 export const updateKeys = (pressedKeys: PressedKeys, kbInfo: KeyboardInfo): PressedKeys => {
-    console.log(kbInfo.event.code)
+    // console.log(kbInfo.event.code)
 
     switch (kbInfo.type) {
     case KeyboardEventTypes.KEYDOWN:

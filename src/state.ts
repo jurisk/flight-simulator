@@ -6,7 +6,7 @@ export interface MainMenu {
 }
 
 export enum Difficulty {
-    Easy, Moderate, Hard,
+    VeryEasy, Easy, Moderate, Hard, VeryHard,
 }
 
 export interface Playing {

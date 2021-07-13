@@ -146,7 +146,7 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>, bombColl
 
     // this is a sad hack because we could not get MeshImpostor to work
     const ufoBall = SphereBuilder.CreateSphere("ufo-sphere", {diameter: 10}, scene)
-    const ufoBallMaterial = new StandardMaterial("ufo-ball-material", scene)
+    const ufoBallMaterial = new StandardMaterial("ufo-sphere-material", scene)
     const color = Color3.Yellow()
     ufoBallMaterial.diffuseColor = color
     ufoBallMaterial.emissiveColor = color
@@ -164,4 +164,17 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>, bombColl
     )
 
     return new Ufo(scene, root, ufoBall, bombCollisionCallback)
+}
+
+export function bombHitsEarth(scene: Scene, position: Vector3): void {
+    const explosionBall = SphereBuilder.CreateSphere("bomb-explosion-sphere", {diameter: 3}, scene)
+    const material = new StandardMaterial("bomb-explosion-material", scene)
+    const color = new Color3(1, 0.64, 0)
+    material.diffuseColor = color
+    material.emissiveColor = color
+    material.specularColor = color
+    explosionBall.material = material
+    explosionBall.position = position
+
+    setTimeout(() => explosionBall.dispose(), 1000)
 }

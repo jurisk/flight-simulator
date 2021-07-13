@@ -9,7 +9,7 @@ import "@babylonjs/inspector"
 import {newPressedKeys, PressedKeys, updateKeys} from "./keys"
 import {Controls, updateControls} from "./controls"
 import {loadAirplane, updateAirplane} from "./airplane"
-import {createUfos} from "./ufo"
+import {bombHitsEarth, createUfos} from "./ufo"
 import {fogSkyLight, loadMap, loadMapWithPhysics} from "./environment"
 import {useSetRecoilState} from "recoil"
 import {Difficulty, gameState} from "./state"
@@ -29,9 +29,11 @@ interface AirplaneState {
 }
 
 const initialUfos: Record<Difficulty, number> = {
+    [Difficulty.VeryEasy]: 1,
     [Difficulty.Easy]: 2,
     [Difficulty.Moderate]: 4,
-    [Difficulty.Hard]: 12,
+    [Difficulty.Hard]: 8,
+    [Difficulty.VeryHard]: 16,
 }
 
 interface EarthState {
@@ -129,8 +131,7 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
         const guiSetters = createGui(scene)
 
         const ufos = await createUfos(scene, initialUfos[props.difficulty], (object, target) => {
-            console.log(object, target)
-            // TODO: make explosion effect and sound
+            // TODO: make sound?
             if (target === physicsGround.physicsImpostor) {
                 gameState = {
                     ...gameState,
@@ -142,6 +143,8 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
                 (object.object as AbstractMesh).dispose()
                 object.dispose()
+
+                bombHitsEarth(scene, object.object.getAbsolutePosition())
             }
         })
 
