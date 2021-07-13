@@ -1,6 +1,6 @@
 import React from "react"
 import {
-    Vector3, Scene, SceneLoader, Sound, UniversalCamera,
+    Vector3, Scene, SceneLoader, Sound, UniversalCamera, AbstractMesh,
 } from "@babylonjs/core"
 import SceneComponent from "babylonjs-hook"
 import "./App.css"
@@ -120,7 +120,7 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             console.log("No canvas")
         }
 
-        await loadMapWithPhysics(scene)
+        const physicsGround = await loadMapWithPhysics(scene)
         const plainGround = await loadMap(scene)
         plainGround.isVisible = false
 
@@ -128,7 +128,22 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         const guiSetters = createGui(scene)
 
-        const ufos = await createUfos(scene, initialUfos[props.difficulty])
+        const ufos = await createUfos(scene, initialUfos[props.difficulty], (object, target) => {
+            console.log(object, target)
+            // TODO: make explosion effect and sound
+            if (target === physicsGround.physicsImpostor) {
+                gameState = {
+                    ...gameState,
+                    earth: {
+                        ...gameState.earth,
+                        hitPoints: gameState.earth.hitPoints - 1,
+                    }
+                };
+
+                (object.object as AbstractMesh).dispose()
+                object.dispose()
+            }
+        })
 
         const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
             { playbackRate: 1, volume: 0.1 },

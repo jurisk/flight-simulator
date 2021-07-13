@@ -10,6 +10,7 @@ import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import {Mesh} from "@babylonjs/core/Meshes/mesh"
 import {Color3} from "@babylonjs/core/Maths/math.color"
 import {EdgeLength, MaxCoordinate, MaxHeight, MinCoordinate} from "./environment"
+import {CollisionCallback} from "./util"
 
 function r(): number {
     return (Math.random() - 0.5) * 2
@@ -21,13 +22,15 @@ export class Ufo {
     sphere: Mesh
     hitPoints: number
     destructionStarted: number | null
+    bombCollisionCallback: CollisionCallback
 
-    constructor(_scene: Scene, _meshSet: TransformNode, _sphere: Mesh) {
+    constructor(_scene: Scene, _meshSet: TransformNode, _sphere: Mesh, _bombCollisionCallback: CollisionCallback) {
         this.scene = _scene
         this.meshSet = _meshSet
         this.sphere = _sphere
         this.hitPoints = 5
         this.destructionStarted = null
+        this.bombCollisionCallback = _bombCollisionCallback
     }
 
     bulletHit(): void {
@@ -58,9 +61,7 @@ export class Ufo {
             this.scene,
         )
 
-        bomb.physicsImpostor.onCollideEvent = (object, target) => {
-            console.log("Bomb hit", object, target)
-        }
+        bomb.physicsImpostor.onCollideEvent = this.bombCollisionCallback
     }
 
     update(deltaTime: number): void {
@@ -111,12 +112,12 @@ export class Ufo {
     }
 }
 
-export async function createUfos(scene: Scene, n: number): Promise<Ufo[]> {
+export async function createUfos(scene: Scene, n: number, bombCollisionCallback: CollisionCallback): Promise<Ufo[]> {
     const meshSet = await loadMeshSet();
     [meshSet.root, ...meshSet.children].forEach((x) => { x.isVisible = false })
 
     return Array.from(Array(n).keys()).map((x) =>
-        createUfo(x, scene, meshSet)
+        createUfo(x, scene, meshSet, bombCollisionCallback)
     )
 }
 
@@ -132,7 +133,7 @@ async function loadMeshSet() {
     )
 }
 
-function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
+function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>, bombCollisionCallback: CollisionCallback): Ufo {
     const x = r() * EdgeLength * 0.5
     const z = r() * EdgeLength * 0.5
     const initialPosition = new Vector3(x, MaxHeight * 1.25, z)
@@ -162,5 +163,5 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>): Ufo {
         scene,
     )
 
-    return new Ufo(scene, root, ufoBall)
+    return new Ufo(scene, root, ufoBall, bombCollisionCallback)
 }

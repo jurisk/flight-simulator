@@ -35,11 +35,12 @@ export function updateAirplane(airplane: AbstractMesh, deltaTime: number, contro
 
     const forward = new Vector3(0, 0, 1)
     const SpeedFactor = 0.05
+    const baseThrust = 0.5
 
     // TODO: throttle isn't really speed, have to decouple and add inertia and stalling
     const direction = airplane
         .getDirection(forward)
-        .scale(deltaTime * SpeedFactor * controls.throttle)
+        .scale(deltaTime * SpeedFactor * (controls.throttle + baseThrust))
 
     // TODO: move to more advanced physics such as https://www.youtube.com/watch?v=p3jDJ9FtTyM / https://github.com/gasgiant/Aircraft-Physics
     airplane.position.addInPlace(direction)
