@@ -26,6 +26,7 @@ export function createGui(scene: Scene): GuiSetters {
 
     function createButton(name: string, initialText: string) {
         const button = GUI.Button.CreateSimpleButton(name + "-button", initialText)
+        button.fontFamily = "Press Start 2P"
         button.width = "200px"
         button.height = "40px"
         button.color = "white"

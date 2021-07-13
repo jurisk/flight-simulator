@@ -36,8 +36,6 @@ export function createCannonBall(airplane: AbstractMesh, ufos: readonly Ufo[], g
                     ufo.bulletHit()
                 }
             })
-
-            console.log(object, target)
         }
 
         // TODO: this never seems to trigger
