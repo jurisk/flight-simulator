@@ -204,10 +204,9 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
                     return
                 }
 
-
+                // TODO: The sphere is actually larger than the actual UFO model
                 if (ufos.some((ufo) => ufo.sphere.intersectsMesh(airplane.children[0]))) {
-                    // crashed into UFO!
-                    gameLost(0,  "You crashed into an UFO")
+                    gameLost(0,  "You came too close to a UFO")
                     return
                 }
             }
