@@ -1,9 +1,14 @@
 import React from "react"
 import {useSetRecoilState} from "recoil"
-import {gameState} from "./state"
+import {Difficulty, gameState} from "./state"
 import {NesRightBalloon} from "./nes"
 
-export const GameWon = (): JSX.Element => {
+interface GameWonProps {
+    difficulty: Difficulty,
+    score: number,
+}
+
+export const GameWon = (props: GameWonProps): JSX.Element => {
     const setState = useSetRecoilState(gameState)
 
     return (
@@ -12,7 +17,7 @@ export const GameWon = (): JSX.Element => {
 
             <section className="nes-container">
                 <div className="nes-container with-title is-centered">
-                    <p className="title">Mission Succeeded</p>
+                    <p className="title">Mission Succeeded on {props.difficulty}: <span style={{color: "#209cee"}}>{Number(props.score).toLocaleString()}</span> points</p>
                     <p className="nes-text is-success">Great Success!!! You have destroyed the alien invasion force end defended your world!</p>
                 </div>
 

@@ -65,14 +65,15 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
         function gameLost(delay: number, reason: string): void {
             setTimeout(() => {
                 cleanUp()
-                setState({type: "GameLost", reason: reason})
+                setState({ type: "GameLost", reason: reason })
             }, delay)
         }
 
         const gameWon = (delay: number) => {
             setTimeout(() => {
                 cleanUp()
-                setState({type: "GameWon"})
+                const score = initialUfoCount * (1000 + gameState.earth.hitPoints) + gameState.airplane.cannonShells
+                setState({ type: "GameWon", difficulty: props.difficulty, score: score })
             }, delay)
         }
 
@@ -130,7 +131,8 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         const guiSetters = createGui(scene)
 
-        const ufos = await createUfos(scene, initialUfos[props.difficulty], (object, target) => {
+        const initialUfoCount = initialUfos[props.difficulty]
+        const ufos = await createUfos(scene, initialUfoCount, (object, target) => {
             // TODO: make sound?
             if (target === physicsGround.physicsImpostor) {
                 gameState = {

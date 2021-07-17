@@ -17,6 +17,6 @@ export const Game = (): JSX.Element => {
     case "GameLost":
         return (<GameLost reason={state.reason}/>)
     case "GameWon":
-        return (<GameWon/>)
+        return (<GameWon difficulty={state.difficulty} score={state.score}/>)
     }
 }

@@ -6,7 +6,7 @@ export interface MainMenu {
 }
 
 export enum Difficulty {
-    VeryEasy, Easy, Moderate, Hard, VeryHard,
+    VeryEasy = "Very Easy", Easy = "Easy", Moderate = "Moderate", Hard = "Hard", VeryHard = "Very Hard",
 }
 
 export interface Playing {
@@ -16,6 +16,8 @@ export interface Playing {
 
 export interface GameWon {
     type: "GameWon",
+    difficulty: Difficulty,
+    score: number,
 }
 
 export interface GameLost {
