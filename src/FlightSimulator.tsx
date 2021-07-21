@@ -131,9 +131,25 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
 
         const guiSetters = createGui(scene)
 
+
+        const cannonFired = new Sound("cannon-fired", "assets/sounds/cannon-fired.wav", scene, null,
+            { playbackRate: 1, volume: 0.1, spatialSound: true, maxDistance: 1000 },
+        )
+
+        const cannonImpact = new Sound("cannon-impact", "assets/sounds/cannon-impact.mp3", scene, null,
+            { playbackRate: 1, volume: 0.1, spatialSound: true, maxDistance: 1000 },
+        )
+
+        const bombExplosion = new Sound("bomb-explosion", "assets/sounds/bomb-explosion.mp3", scene, null,
+            { playbackRate: 1, volume: 0.2, spatialSound: true, maxDistance: 1000 },
+        )
+
+        const ufoExplosion = new Sound("ufo-explosion", "assets/sounds/ufo-explosion.mp3", scene, null,
+            { playbackRate: 1, volume: 0.2, spatialSound: true, maxDistance: 1000 },
+        )
+
         const initialUfoCount = initialUfos[props.difficulty]
         const ufos = await createUfos(scene, initialUfoCount, (object, target) => {
-            // TODO: make sound?
             if (target === physicsGround.physicsImpostor) {
                 gameState = {
                     ...gameState,
@@ -146,13 +162,11 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
                 (object.object as AbstractMesh).dispose()
                 object.dispose()
 
+                bombExplosion.setPosition(object.object.getAbsolutePosition())
+                bombExplosion.play()
                 bombHitsEarth(scene, object.object.getAbsolutePosition())
             }
-        })
-
-        const gunshot = new Sound("gunshot", "assets/sounds/cannon.wav", scene, null,
-            { playbackRate: 1, volume: 0.1 },
-        )
+        }, ufoExplosion)
 
         const onBeforeRender = () => {
             const deltaTime = scene.deltaTime
@@ -164,10 +178,11 @@ export const FlightSimulator = (props: FlightSimulatorProps): JSX.Element => {
             ufos.forEach((ufo) =>
                 ufo.update(deltaTime)
             )
+
             if (gameState.controls.fireCannons) {
                 // Note - This is suboptimal because rate of fire depends on our framerate!
                 if (gameState.airplane.cannonShells > 0) {
-                    createCannonBall(airplane.root, ufos, plainGround, gunshot, scene)
+                    createCannonBall(airplane.root, ufos, plainGround, cannonFired, cannonImpact, scene)
                     gameState = {
                         ...gameState,
                         airplane: {

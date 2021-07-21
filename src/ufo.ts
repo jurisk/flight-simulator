@@ -1,5 +1,5 @@
 import {
-    Scene,
+    Scene, Sound,
     SphereBuilder,
     StandardMaterial,
     TransformNode,
@@ -23,14 +23,22 @@ export class Ufo {
     hitPoints: number
     destructionStarted: number | null
     bombCollisionCallback: CollisionCallback
+    ufoExplosionSound: Sound
 
-    constructor(_scene: Scene, _meshSet: TransformNode, _sphere: Mesh, _bombCollisionCallback: CollisionCallback) {
+    constructor(
+        _scene: Scene,
+        _meshSet: TransformNode,
+        _sphere: Mesh,
+        _bombCollisionCallback: CollisionCallback,
+        _ufoExplosionSound: Sound,
+    ) {
         this.scene = _scene
         this.meshSet = _meshSet
         this.sphere = _sphere
         this.hitPoints = 5
         this.destructionStarted = null
         this.bombCollisionCallback = _bombCollisionCallback
+        this.ufoExplosionSound = _ufoExplosionSound
     }
 
     bulletHit(): void {
@@ -78,6 +86,8 @@ export class Ufo {
                 this.destructionStarted = new Date().valueOf()
                 this.sphere.isVisible = true
                 this.meshSet.dispose()
+                this.ufoExplosionSound.setPosition(this.sphere.getAbsolutePosition())
+                this.ufoExplosionSound.play()
             } else {
                 if (this.sphere.position.y < MaxHeight * 1.2) { // if we are too low, go up a bit
                     const force = MaxHeight * 1.2 - this.sphere.position.y
@@ -112,12 +122,17 @@ export class Ufo {
     }
 }
 
-export async function createUfos(scene: Scene, n: number, bombCollisionCallback: CollisionCallback): Promise<Ufo[]> {
+export async function createUfos(
+    scene: Scene,
+    n: number,
+    bombCollisionCallback: CollisionCallback,
+    ufoExplosionSound: Sound,
+): Promise<Ufo[]> {
     const meshSet = await loadMeshSet();
     [meshSet.root, ...meshSet.children].forEach((x) => { x.isVisible = false })
 
     return Array.from(Array(n).keys()).map((x) =>
-        createUfo(x, scene, meshSet, bombCollisionCallback)
+        createUfo(x, scene, meshSet, bombCollisionCallback, ufoExplosionSound)
     )
 }
 
@@ -133,7 +148,13 @@ async function loadMeshSet() {
     )
 }
 
-function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>, bombCollisionCallback: CollisionCallback): Ufo {
+function createUfo(
+    index: number,
+    scene: Scene,
+    meshSet: MeshSet<Mesh>,
+    bombCollisionCallback: CollisionCallback,
+    ufoExplosionSound: Sound,
+): Ufo {
     const x = r() * EdgeLength * 0.5
     const z = r() * EdgeLength * 0.5
     const initialPosition = new Vector3(x, MaxHeight * 1.25, z)
@@ -163,7 +184,7 @@ function createUfo(index: number, scene: Scene, meshSet: MeshSet<Mesh>, bombColl
         scene,
     )
 
-    return new Ufo(scene, root, ufoBall, bombCollisionCallback)
+    return new Ufo(scene, root, ufoBall, bombCollisionCallback, ufoExplosionSound)
 }
 
 export function bombHitsEarth(scene: Scene, position: Vector3): void {

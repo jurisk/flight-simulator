@@ -3,7 +3,7 @@ import {Color3} from "@babylonjs/core/Maths/math.color"
 import {PhysicsImpostor} from "@babylonjs/core/Physics/physicsImpostor"
 import {Ufo} from "./ufo"
 
-export function createCannonBall(airplane: AbstractMesh, ufos: readonly Ufo[], ground: GroundMesh, sound: Sound, scene: Scene): void {
+export function createCannonBall(airplane: AbstractMesh, ufos: readonly Ufo[], ground: GroundMesh, cannonFired: Sound, cannonImpact: Sound, scene: Scene): void {
     const bullet = Mesh.CreateSphere("cannon-ball", 8, 0.1, scene)
 
     setTimeout(() => {
@@ -49,7 +49,11 @@ export function createCannonBall(airplane: AbstractMesh, ufos: readonly Ufo[], g
         }
 
         bullet.dispose()
+
+        cannonImpact.setPosition(object.object.getAbsolutePosition())
+        cannonImpact.play()
     }
 
-    sound.play()
+    cannonFired.setPosition(airplane.getAbsolutePosition())
+    cannonFired.play()
 }
